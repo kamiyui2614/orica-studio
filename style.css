@@ -1,0 +1,607 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "Noto Sans JP",
+        sans-serif;
+    background: #f5f5f5;
+    color: #222;
+    line-height: 1.6;
+}
+
+button,
+input,
+textarea {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* =========================
+   ヘッダー
+========================= */
+
+.site-header {
+    background: #222;
+    color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    min-height: 64px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.site-header h1 {
+    margin: 0;
+    font-size: 20px;
+    letter-spacing: 1px;
+}
+
+.site-header nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.site-header nav button,
+.site-header nav a {
+    border: 0;
+    background: transparent;
+    color: #fff;
+    text-decoration: none;
+    padding: 8px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.site-header nav button:hover,
+.site-header nav a:hover {
+    background: #444;
+}
+
+/* =========================
+   レイアウト
+========================= */
+
+.container {
+    width: min(100% - 32px, 1000px);
+    margin: 0 auto;
+    padding: 28px 0 60px;
+}
+
+.section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.section-heading h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.card-panel {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.card-panel h3 {
+    margin: 0 0 18px;
+    font-size: 18px;
+}
+
+/* =========================
+   フォーム
+========================= */
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+input[type="text"],
+textarea {
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 7px;
+    background: #fff;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input[type="text"]:focus,
+textarea:focus {
+    border-color: #777;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
+}
+
+textarea {
+    min-height: 150px;
+    resize: vertical;
+    line-height: 1.7;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.input-with-button {
+    display: flex;
+    gap: 6px;
+}
+
+.input-with-button input {
+    flex: 1;
+}
+
+.range-inputs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.range-inputs input {
+    min-width: 0;
+}
+
+.range-inputs span {
+    flex: 0 0 auto;
+}
+
+/* =========================
+   文明
+========================= */
+
+.civilization-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.civilization-button {
+    border: 1px solid #ccc;
+    background: #fff;
+    border-radius: 7px;
+    padding: 7px 14px;
+    min-width: 48px;
+}
+
+.civilization-button:hover {
+    background: #f0f0f0;
+}
+
+.civilization-button.selected {
+    background: #222;
+    color: #fff;
+    border-color: #222;
+}
+
+/* =========================
+   カードタイプ / モード
+========================= */
+
+.card-special-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.card-special-buttons .small-button {
+    flex: 1;
+    font-size: 14px;
+}
+
+.mode-button {
+    font-size: 14px;
+}
+
+.mode-button.selected,
+.special-mode-button.selected {
+    background: #222;
+    color: #fff;
+    border-color: #222;
+}
+
+#multiFaceModePanel {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+#multiFaceModePanel .small-button {
+    flex: 1;
+    font-size: 14px;
+}
+
+/* =========================
+   ボタン
+========================= */
+
+.small-button {
+    border: 1px solid #ccc;
+    background: #fff;
+    color: #222;
+    border-radius: 7px;
+    padding: 7px 12px;
+}
+
+.small-button:hover {
+    background: #f0f0f0;
+}
+
+.secondary-button {
+    background: #fff !important;
+    color: #222 !important;
+    border: 1px solid #ccc !important;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.action-buttons > button {
+    min-width: 140px;
+    border: 0;
+    border-radius: 8px;
+    padding: 11px 18px;
+    background: #222;
+    color: #fff;
+}
+
+.action-buttons > button:hover {
+    opacity: 0.85;
+}
+
+/* =========================
+   特殊カード
+========================= */
+
+.special-face {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+    background: #fafafa;
+}
+
+.special-face:last-child {
+    margin-bottom: 0;
+}
+
+.special-face h4 {
+    margin: 0 0 14px;
+    font-size: 17px;
+}
+
+.special-face-separator {
+    margin: 18px 0;
+    border: 0;
+    border-top: 1px dashed #bbb;
+}
+
+/* =========================
+   検索
+========================= */
+
+.list-heading {
+    margin-bottom: 14px;
+}
+
+.search-civilization-mode {
+    display: flex;
+    gap: 7px;
+    margin-bottom: 10px;
+}
+
+.search-civilization-mode .small-button {
+    min-width: 72px;
+}
+
+.search-civilization-mode .small-button.selected {
+    background: #222;
+    color: #fff;
+    border-color: #222;
+}
+
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+}
+
+/* =========================
+   カード一覧
+========================= */
+
+#cardList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.card-list-item {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 9px;
+    padding: 13px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.card-list-item:hover {
+    background: #fafafa;
+    border-color: #aaa;
+}
+
+.card-list-name-area {
+    min-width: 0;
+}
+
+.card-list-name {
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.card-list-type {
+    color: #777;
+    font-size: 12px;
+    margin-top: 1px;
+}
+
+.favorite-button {
+    flex: 0 0 auto;
+    border: 0;
+    background: transparent;
+    color: #222;
+    font-size: 22px;
+    line-height: 1;
+    padding: 4px 6px;
+}
+
+.favorite-button:hover {
+    transform: scale(1.08);
+}
+
+.empty-message {
+    text-align: center;
+    color: #777;
+    padding: 35px 10px;
+}
+
+/* =========================
+   詳細
+========================= */
+
+.detail-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 12px;
+    margin-bottom: 18px;
+}
+
+.detail-header h2 {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.detail-content p {
+    margin: 7px 0;
+}
+
+.detail-ability {
+    margin-top: 14px;
+}
+
+.detail-ability pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    background: #f7f7f7;
+    border-radius: 7px;
+    padding: 12px;
+    margin: 6px 0 0;
+    font-family: inherit;
+}
+
+.special-detail-face {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 14px;
+}
+
+.special-detail-face:last-child {
+    margin-bottom: 0;
+}
+
+.special-detail-face h3 {
+    margin: 0 0 12px;
+    font-size: 17px;
+}
+
+.twinpact-detail {
+    border-top: 1px dashed #bbb;
+    margin-top: 20px;
+    padding-top: 18px;
+}
+
+.twinpact-label {
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid #eee;
+}
+
+.detail-actions button {
+    border: 1px solid #ccc;
+    background: #fff;
+    border-radius: 7px;
+    padding: 9px 14px;
+}
+
+.detail-actions button:hover {
+    background: #f0f0f0;
+}
+
+.detail-actions .delete-button {
+    color: #b00020;
+    border-color: #e0a0aa;
+}
+
+/* =========================
+   スマホ
+========================= */
+
+@media (max-width: 700px) {
+
+    .header-inner {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .site-header nav {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .site-header nav button,
+    .site-header nav a {
+        font-size: 13px;
+    }
+
+    .container {
+        width: min(100% - 20px, 1000px);
+        padding-top: 20px;
+    }
+
+    .card-panel,
+    .detail-card {
+        padding: 15px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    #searchPanel .form-row {
+        display: block;
+    }
+
+    #searchPanel .range-inputs {
+        width: 100%;
+    }
+
+    #searchPanel .range-inputs input {
+        flex: 1;
+        width: 0;
+    }
+
+    #searchPanel .form-group {
+        margin-bottom: 14px;
+    }
+
+    .action-buttons {
+        position: sticky;
+        bottom: 10px;
+        z-index: 20;
+        background: rgba(245, 245, 245, 0.92);
+        padding: 8px;
+        border-radius: 10px;
+        backdrop-filter: blur(6px);
+    }
+
+    .action-buttons > button {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 430px) {
+
+    .section-heading h2 {
+        font-size: 21px;
+    }
+
+    .card-special-buttons {
+        gap: 6px;
+    }
+
+    .card-special-buttons .small-button,
+    #multiFaceModePanel .small-button {
+        font-size: 13px;
+        padding-left: 7px;
+        padding-right: 7px;
+    }
+
+    .civilization-button {
+        flex: 1 0 calc(33.333% - 7px);
+    }
+
+    .detail-actions button {
+        flex: 1;
+    }
+}

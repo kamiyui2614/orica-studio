@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>ORICA STUDIO</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+</head>
+
+<body>
+
+<header class="site-header">
+
+    <div class="header-inner">
+
+        <h1>
+            ORICA STUDIO
+        </h1>
+
+        <nav>
+
+            <button
+                type="button"
+                id="createTabButton"
+            >
+                カード作成
+            </button>
+
+            <button
+                type="button"
+                id="listTabButton"
+            >
+                カード一覧
+            </button>
+
+            <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLSdGGQ-7yeDHDp8h7kwIUcz1ikG98ShZujif6WuM4B-4Itdqpg/viewform?usp=publish-editor"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                🛠 不具合を報告
+            </a>
+
+        </nav>
+
+    </div>
+
+</header>
+
+
+<main class="container">
+
+
+    <!-- =========================
+         カード作成
+    ========================== -->
+
+    <section id="createSection">
+
+        <div class="section-heading">
+
+            <h2>
+                カード作成
+            </h2>
+
+        </div>
+
+
+        <!-- =========================
+             カード情報
+        ========================== -->
+
+        <div
+            class="card-panel"
+            id="normalCardPanel"
+        >
+
+            <h3>
+                カード情報
+            </h3>
+
+
+            <!-- =====================
+                 モード切替
+            ====================== -->
+
+            <div class="form-group">
+
+                <div class="card-special-buttons">
+
+                    <button
+                        type="button"
+                        class="small-button mode-button"
+                        id="twinpactButton"
+                    >
+                        ツインパクト
+                    </button>
+
+                    <button
+                        type="button"
+                        class="small-button mode-button"
+                        id="multiFaceButton"
+                    >
+                        ドラグハート・サイキック
+                    </button>
+
+                </div>
+
+
+                <!-- =================
+                     両面 / 3D
+                ================== -->
+
+                <div
+                    id="multiFaceModePanel"
+                    class="hidden"
+                >
+
+                    <button
+                        type="button"
+                        class="small-button special-mode-button"
+                        id="doubleFaceButton"
+                    >
+                        両面
+                    </button>
+
+                    <button
+                        type="button"
+                        class="small-button special-mode-button"
+                        id="tripleFaceButton"
+                    >
+                        3D
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- =====================
+                 通常カード入力
+            ====================== -->
+
+            <div id="normalCardFields">
+
+
+                <!-- 名前 -->
+
+                <div class="form-group">
+
+                    <label for="cardName">
+                        名前
+                    </label>
+
+                    <input
+                        type="text"
+                        id="cardName"
+                    >
+
+                </div>
+
+
+                <!-- 読み方 -->
+
+                <div class="form-group">
+
+                    <label for="reading">
+                        読み方
+                    </label>
+
+                    <input
+                        type="text"
+                        id="reading"
+                    >
+
+                </div>
+
+
+                <!-- 文明 -->
+
+                <div class="form-group">
+
+                    <label>
+                        文明
+                    </label>
+
+                    <div
+                        class="civilization-buttons"
+                        id="civilizationButtons"
+                    >
+
+                        <button
+                            type="button"
+                            class="civilization-button"
+                            data-civilization="光"
+                        >
+                            光
+                        </button>
+
+                        <button
+                            type="button"
+                            class="civilization-button"
+                            data-civilization="水"
+                        >
+                            水
+                        </button>
+
+                        <button
+                            type="button"
+                            class="civilization-button"
+                            data-civilization="闇"
+                        >
+                            闇
+                        </button>
+
+                        <button
+                            type="button"
+                            class="civilization-button"
+                            data-civilization="火"
+                        >
+                            火
+                        </button>
+
+                        <button
+                            type="button"
+                            class="civilization-button"
+                            data-civilization="自然"
+                        >
+                            自然
+                        </button>
+
+                        <button
+                            type="button"
+                            class="civilization-button"
+                            data-civilization="無色"
+                        >
+                            無色
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- コスト / パワー -->
+
+                <div class="form-row">
+
+
+                    <div class="form-group">
+
+                        <label for="cost">
+                            コスト
+                        </label>
+
+                        <input
+                            type="text"
+                            id="cost"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="power">
+                            パワー
+                        </label>
+
+                        <input
+                            type="text"
+                            id="power"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- 種族 -->
+
+                <div class="form-group">
+
+                    <label for="race">
+                        種族
+                    </label>
+
+                    <div class="input-with-button">
+
+                        <input
+                            type="text"
+                            id="race"
+                        >
+
+                        <button
+                            type="button"
+                            class="small-button slash-button"
+                            id="raceSlashButton"
+                        >
+                            /
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- カードタイプ -->
+
+                <div class="form-group">
+
+                    <label for="cardType">
+                        カードタイプ
+                    </label>
+
+                    <input
+                        type="text"
+                        id="cardType"
+                    >
+
+                </div>
+
+
+            </div>
+
+
+            <!-- =====================
+                 通常カード能力
+            ====================== -->
+
+            <div
+                id="normalAbilityField"
+                class="form-group"
+            >
+
+                <label for="ability">
+                    能力
+                </label>
+
+                <textarea
+                    id="ability"
+                ></textarea>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================
+             ツインパクト下面
+        ========================== -->
+
+        <div
+            class="card-panel hidden"
+            id="twinpactPanel"
+        >
+
+            <h3>
+                ツインパクト下面
+            </h3>
+
+
+            <!-- 名前 -->
+
+            <div class="form-group">
+
+                <label for="bottomCardName">
+                    名前
+                </label>
+
+                <input
+                    type="text"
+                    id="bottomCardName"
+                >
+
+            </div>
+
+
+            <!-- 読み方 -->
+
+            <div class="form-group">
+
+                <label for="bottomReading">
+                    読み方
+                </label>
+
+                <input
+                    type="text"
+                    id="bottomReading"
+                >
+
+            </div>
+
+
+            <!-- 文明 -->
+
+            <div class="form-group">
+
+                <label>
+                    文明
+                </label>
+
+                <div
+                    class="civilization-buttons"
+                    id="bottomCivilizationButtons"
+                >
+
+                    <button
+                        type="button"
+                        class="civilization-button"
+                        data-civilization="光"
+                    >
+                        光
+                    </button>
+
+                    <button
+                        type="button"
+                        class="civilization-button"
+                        data-civilization="水"
+                    >
+                        水
+                    </button>
+
+                    <button
+                        type="button"
+                        class="civilization-button"
+                        data-civilization="闇"
+                    >
+                        闇
+                    </button>
+
+                    <button
+                        type="button"
+                        class="civilization-button"
+                        data-civilization="火"
+                    >
+                        火
+                    </button>
+
+                    <button
+                        type="button"
+                        class="civilization-button"
+                        data-civilization="自然"
+                    >
+                        自然
+                    </button>
+
+                    <button
+                        type="button"
+                        class="civilization-button"
+                        data-civilization="無色"
+                    >
+                        無色
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- コスト -->
+
+            <div class="form-group">
+
+                <label for="bottomCost">
+                    コスト
+                </label>
+
+                <input
+                    type="text"
+                    id="bottomCost"
+                >
+
+            </div>
+
+
+            <!-- 種族 -->
+
+            <div class="form-group">
+
+                <label for="bottomRace">
+                    種族
+                </label>
+
+                <div class="input-with-button">
+
+                    <input
+                        type="text"
+                        id="bottomRace"
+                    >
+
+                    <button
+                        type="button"
+                        class="small-button slash-button"
+                        id="bottomRaceSlashButton"
+                    >
+                        /
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- カードタイプ -->
+
+            <div class="form-group">
+
+                <label for="bottomCardType">
+                    カードタイプ
+                </label>
+
+                <input
+                    type="text"
+                    id="bottomCardType"
+                    value="呪文"
+                >
+
+            </div>
+
+
+            <!-- 能力 -->
+
+            <div class="form-group">
+
+                <label for="bottomAbility">
+                    能力
+                </label>
+
+                <textarea
+                    id="bottomAbility"
+                ></textarea>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================
+             ドラグハート・サイキック
+        ========================== -->
+
+        <div
+            class="card-panel hidden"
+            id="multiFacePanel"
+        >
+
+            <h3>
+                特殊カード
+            </h3>
+
+            <div id="multiFaceInputs"></div>
+
+        </div>
+
+
+        <!-- =========================
+             保存 / リセット
+        ========================== -->
+
+        <div class="action-buttons">
+
+            <button
+                type="button"
+                id="saveButton"
+            >
+                保存
+            </button>
+
+            <button
+                type="button"
+                class="secondary-button"
+                id="resetButton"
+            >
+                リセット
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         カード一覧
+    ========================== -->
+
+    <section
+        id="listSection"
+        class="hidden"
+    >
+
+        <div class="section-heading list-heading">
+
+            <h2>
+                カード一覧
+            </h2>
+
+            <button
+                type="button"
+                class="small-button"
+                id="searchToggleButton"
+            >
+                検索
+            </button>
+
+        </div>
+
+
+        <!-- =====================
+             検索
+        ====================== -->
+
+        <div
+            id="searchPanel"
+            class="card-panel hidden"
+        >
+
+
+            <!-- キーワード -->
+
+            <div class="form-group">
+
+                <label for="searchKeyword">
+                    キーワード
+                </label>
+
+                <input
+                    type="text"
+                    id="searchKeyword"
+                    placeholder="名前・種族・能力など"
+                >
+
+            </div>
+
+
+            <!-- コスト / パワー -->
+
+            <div class="form-row">
+
+                <div class="form-group">
+
+                    <label>
+                        コスト
+                    </label>
+
+                    <div class="range-inputs">
+
+                        <input
+                            type="text"
+                            id="searchCostMin"
+                            inputmode="numeric"
+                            placeholder="最小"
+                        >
+
+                        <span>
+                            ～
+                        </span>
+
+                        <input
+                            type="text"
+                            id="searchCostMax"
+                            inputmode="numeric"
+                            placeholder="最大"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        パワー
+                    </label>
+
+                    <div class="range-inputs">
+
+                        <input
+                            type="text"
+                            id="searchPowerMin"
+                            inputmode="numeric"
+                            placeholder="最小"
+                        >
+
+                        <span>
+                            ～
+                        </span>
+
+                        <input
+                            type="text"
+                            id="searchPowerMax"
+                            inputmode="numeric"
+                            placeholder="最大"
+                        >
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- カードタイプ検索 -->
+
+            <div class="form-group">
+
+                <label for="searchCardType">
+                    カードタイプ
+                </label>
+
+                <input
+                    type="text"
+                    id="searchCardType"
+                    placeholder="例：クリーチャー"
+                >
+
+            </div>
+
+
+            <!-- 文明検索 -->
+
+            <div class="form-group">
+
+                <label>
+                    文明
+                </label>
+
+
+                <div class="search-civilization-mode">
+
+                    <button
+                        type="button"
+                        class="small-button"
+                        id="searchSingleColorButton"
+                    >
+                        単色
+                    </button>
+
+                    <button
+                        type="button"
+                        class="small-button"
+                        id="searchMultiColorButton"
+                    >
+                        多色
+                    </button>
+
+                    <button
+                        type="button"
+                        class="small-button hidden"
+                        id="searchExactMatchButton"
+                    >
+                        完全一致
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="searchCivilizationButtons"
+                    class="civilization-buttons hidden"
+                >
+
+                    <button
+                        type="button"
+                        class="search-civilization-button civilization-button"
+                        data-civilization="光"
+                    >
+                        光
+                    </button>
+
+                    <button
+                        type="button"
+                        class="search-civilization-button civilization-button"
+                        data-civilization="水"
+                    >
+                        水
+                    </button>
+
+                    <button
+                        type="button"
+                        class="search-civilization-button civilization-button"
+                        data-civilization="闇"
+                    >
+                        闇
+                    </button>
+
+                    <button
+                        type="button"
+                        class="search-civilization-button civilization-button"
+                        data-civilization="火"
+                    >
+                        火
+                    </button>
+
+                    <button
+                        type="button"
+                        class="search-civilization-button civilization-button"
+                        data-civilization="自然"
+                    >
+                        自然
+                    </button>
+
+                    <button
+                        type="button"
+                        class="search-civilization-button civilization-button"
+                        data-civilization="無色"
+                    >
+                        無色
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- お気に入り -->
+
+            <label class="checkbox-row">
+
+                <input
+                    type="checkbox"
+                    id="favoritesOnly"
+                >
+
+                お気に入りのみ
+
+            </label>
+
+        </div>
+
+
+        <!-- カード一覧 -->
+
+        <div id="cardList"></div>
+
+    </section>
+
+
+    <!-- =========================
+         詳細
+    ========================== -->
+
+    <section
+        id="detailSection"
+        class="hidden"
+    >
+
+        <div class="section-heading">
+
+            <button
+                type="button"
+                class="small-button"
+                id="backToListButton"
+            >
+                ← 一覧へ戻る
+            </button>
+
+        </div>
+
+        <div id="cardDetail"></div>
+
+    </section>
+
+</main>
+
+
+<script src="script.js"></script>
+
+</body>
+</html>
