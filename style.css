@@ -29,9 +29,10 @@ button {
     display: none !important;
 }
 
+
 /* =========================
    ヘッダー
-========================= */
+========================== */
 
 .site-header {
     background: #222;
@@ -80,9 +81,10 @@ button {
     background: #444;
 }
 
+
 /* =========================
    レイアウト
-========================= */
+========================== */
 
 .container {
     width: min(100% - 32px, 1000px);
@@ -116,9 +118,10 @@ button {
     font-size: 18px;
 }
 
+
 /* =========================
    フォーム
-========================= */
+========================== */
 
 .form-group {
     margin-bottom: 16px;
@@ -142,13 +145,16 @@ textarea {
     background: #fff;
     padding: 10px 12px;
     outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition:
+        border-color 0.15s,
+        box-shadow 0.15s;
 }
 
 input[type="text"]:focus,
 textarea:focus {
     border-color: #777;
-    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
+    box-shadow:
+        0 0 0 3px rgba(0, 0, 0, 0.06);
 }
 
 textarea {
@@ -186,9 +192,10 @@ textarea {
     flex: 0 0 auto;
 }
 
+
 /* =========================
    文明
-========================= */
+========================== */
 
 .civilization-buttons {
     display: flex;
@@ -214,9 +221,10 @@ textarea {
     border-color: #222;
 }
 
+
 /* =========================
    カードタイプ / モード
-========================= */
+========================== */
 
 .card-special-buttons {
     display: flex;
@@ -251,9 +259,10 @@ textarea {
     font-size: 14px;
 }
 
+
 /* =========================
    ボタン
-========================= */
+========================== */
 
 .small-button {
     border: 1px solid #ccc;
@@ -293,9 +302,10 @@ textarea {
     opacity: 0.85;
 }
 
+
 /* =========================
    特殊カード
-========================= */
+========================== */
 
 .special-face {
     border: 1px solid #ddd;
@@ -320,9 +330,10 @@ textarea {
     border-top: 1px dashed #bbb;
 }
 
+
 /* =========================
    検索
-========================= */
+========================== */
 
 .list-heading {
     margin-bottom: 14px;
@@ -351,9 +362,18 @@ textarea {
     cursor: pointer;
 }
 
+
+/* 条件クリア */
+
+#clearSearchButton {
+    margin-top: 10px;
+    width: 100%;
+}
+
+
 /* =========================
    カード一覧
-========================= */
+========================== */
 
 #cardList {
     display: flex;
@@ -371,7 +391,9 @@ textarea {
     justify-content: space-between;
     gap: 12px;
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
+    transition:
+        background 0.15s,
+        border-color 0.15s;
 }
 
 .card-list-item:hover {
@@ -414,9 +436,10 @@ textarea {
     padding: 35px 10px;
 }
 
+
 /* =========================
    詳細
-========================= */
+========================== */
 
 .detail-card {
     background: #fff;
@@ -510,9 +533,10 @@ textarea {
     border-color: #e0a0aa;
 }
 
+
 /* =========================
    スマホ
-========================= */
+========================== */
 
 @media (max-width: 700px) {
 
@@ -579,6 +603,7 @@ textarea {
         min-width: 0;
     }
 }
+
 
 @media (max-width: 430px) {
 
