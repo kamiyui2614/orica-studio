@@ -4268,9 +4268,7 @@ function renderNormalDetail(
             card.power,
 
         "カードタイプ":
-            card.isTwinpact
-                ? "ツインパクト"
-                : card.cardType,
+            card.cardType,
 
         "能力":
             card.ability
@@ -4513,7 +4511,8 @@ function appendDetailRow(
     );
 
 
-    // 能力欄は入力時の改行を維持
+    // 能力欄は「能力：」の直後で必ず改行し、
+    // 入力時の改行も維持する
     if (
         label === "能力"
     ) {
@@ -4533,6 +4532,14 @@ function appendDetailRow(
             );
 
         } else {
+
+            // 「能力：」と最初の能力行を必ず別行にする
+            p.appendChild(
+                document.createElement(
+                    "br"
+                )
+            );
+
 
             const lines =
                 ability.split(/\r?\n/);
@@ -4568,8 +4575,8 @@ function appendDetailRow(
         p.appendChild(
             document.createTextNode(
                 String(
-                    value ?? "-"
-                ) || "-"
+                    value ?? ""
+                ).trim() || "-"
             )
         );
 
@@ -4581,7 +4588,6 @@ function appendDetailRow(
     );
 
 }
-
 
 
 // =========================
@@ -4611,13 +4617,23 @@ function formatCivilizationsForCopy(
     const civilizations =
         bottom
             ? (
-                Array.isArray(card.bottomCivilizations)
+                Array.isArray(
+                    card.bottomCivilizations
+                )
                     ? card.bottomCivilizations
                     : splitCivilizations(
                         card.bottomCivilization || ""
                     )
             )
-            : getCardCivilizations(card);
+            : (
+                Array.isArray(
+                    card.civilizations
+                )
+                    ? card.civilizations
+                    : splitCivilizations(
+                        card.civilization || ""
+                    )
+            );
 
 
     return (
@@ -4632,7 +4648,9 @@ function getDisplayValue(
 ) {
 
     return (
-        String(value ?? "").trim() || "-"
+        String(
+            value ?? ""
+        ).trim() || "-"
     );
 
 }
@@ -4640,7 +4658,8 @@ function getDisplayValue(
 
 function buildCardCopyText(
     card,
-    title = ""
+    title = "",
+    cardTypeOverride = null
 ) {
 
     const lines = [];
@@ -4660,7 +4679,9 @@ function buildCardCopyText(
         `種族：${getDisplayValue(card.race)}`,
         `コスト：${getDisplayValue(card.cost)}`,
         `パワー：${getDisplayValue(card.power)}`,
-        `カードタイプ：${getDisplayValue(card.cardType)}`,
+        `カードタイプ：${getDisplayValue(
+            cardTypeOverride ?? card.cardType
+        )}`,
         `能力：`,
         formatAbilityForCopy(card.ability)
     );
@@ -4749,7 +4770,7 @@ async function copyTemplate(
                     race: card.race,
                     cost: card.cost,
                     power: card.power,
-                    cardType: "ツインパクト",
+                    cardType: card.cardType,
                     ability: card.ability
                 },
                 "【上面】"
@@ -4850,7 +4871,6 @@ async function copyTemplate(
     }
 
 }
-
 
 
 // =========================
