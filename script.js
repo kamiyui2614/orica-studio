@@ -129,6 +129,19 @@ function saveCards() {
 function bindEvents() {
 
     // -------------------------
+    // 文明ボタン
+    // -------------------------
+
+    setupCivilizationButtons(
+        "civilizationButtons"
+    );
+
+    setupCivilizationButtons(
+        "bottomCivilizationButtons"
+    );
+
+
+    // -------------------------
     // 上部メニュー
     // -------------------------
 
@@ -1424,10 +1437,21 @@ function createSpecialFace(
                 種族
             </label>
 
-            <input
-                type="text"
-                class="special-race"
-            >
+            <div class="input-with-button">
+
+                <input
+                    type="text"
+                    class="special-race"
+                >
+
+                <button
+                    type="button"
+                    class="small-button slash-button special-race-slash-button"
+                >
+                    /
+                </button>
+
+            </div>
 
         </div>
 
@@ -1513,6 +1537,35 @@ function createSpecialFace(
 
             }
         );
+
+
+    const specialRace =
+        wrapper.querySelector(
+            ".special-race"
+        );
+
+    const specialRaceSlashButton =
+        wrapper.querySelector(
+            ".special-race-slash-button"
+        );
+
+    if (
+        specialRace &&
+        specialRaceSlashButton
+    ) {
+
+        specialRaceSlashButton.addEventListener(
+            "click",
+            () => {
+
+                insertSlashIntoInput(
+                    specialRace
+                );
+
+            }
+        );
+
+    }
 
 
     const ability =
@@ -2017,8 +2070,16 @@ function insertSlash(
     id
 ) {
 
-    const input =
-        $(id);
+    insertSlashIntoInput(
+        $(id)
+    );
+
+}
+
+
+function insertSlashIntoInput(
+    input
+) {
 
     if (!input) {
         return;
@@ -2026,10 +2087,10 @@ function insertSlash(
 
 
     const start =
-        input.selectionStart;
+        input.selectionStart ?? input.value.length;
 
     const end =
-        input.selectionEnd;
+        input.selectionEnd ?? input.value.length;
 
 
     input.value =
@@ -4500,13 +4561,80 @@ function appendDetailRow(
     );
 
 
-    p.appendChild(
-        document.createTextNode(
+    // 能力欄は「能力：」の次の行から表示し、
+    // 入力時の改行も維持
+    if (
+        label === "能力"
+    ) {
+
+        const ability =
             String(
                 value ?? ""
+            ).trim();
+
+
+        if (!ability) {
+
+            p.appendChild(
+                document.createTextNode(
+                    "-"
+                )
+            );
+
+        } else {
+
+            p.appendChild(
+                document.createElement(
+                    "br"
+                )
+            );
+
+
+            const lines =
+                ability.split(/\r?\n/);
+
+
+            lines.forEach(
+                (line, index) => {
+
+                    if (index > 0) {
+
+                        p.appendChild(
+                            document.createElement(
+                                "br"
+                            )
+                        );
+
+                    }
+
+
+                    p.appendChild(
+                        document.createTextNode(
+                            line
+                        )
+                    );
+
+                }
+            );
+
+        }
+
+    } else {
+
+        const displayValue =
+            String(
+                value ?? ""
+            ).trim() ||
+            "-";
+
+
+        p.appendChild(
+            document.createTextNode(
+                displayValue
             )
-        )
-    );
+        );
+
+    }
 
 
     container.appendChild(
@@ -4519,6 +4647,104 @@ function appendDetailRow(
 // =========================
 // テンプレコピー
 // =========================
+
+function formatAbilityForCopy(
+    ability
+) {
+
+    const value =
+        String(
+            ability ?? ""
+        ).trim();
+
+
+    return value || "-";
+
+}
+
+
+function formatCivilizationsForCopy(
+    card,
+    bottom = false
+) {
+
+    const civilizations =
+        bottom
+            ? (
+                Array.isArray(
+                    card.bottomCivilizations
+                )
+                    ? card.bottomCivilizations
+                    : splitCivilizations(
+                        card.bottomCivilization || ""
+                    )
+            )
+            : (
+                Array.isArray(
+                    card.civilizations
+                )
+                    ? card.civilizations
+                    : splitCivilizations(
+                        card.civilization || ""
+                    )
+            );
+
+
+    return (
+        civilizations.join("・") || "-"
+    );
+
+}
+
+
+function getDisplayValue(
+    value
+) {
+
+    return (
+        String(
+            value ?? ""
+        ).trim() || "-"
+    );
+
+}
+
+
+function buildCardCopyText(
+    card,
+    title = "",
+    cardTypeOverride = null
+) {
+
+    const lines = [];
+
+
+    if (title) {
+
+        lines.push(title);
+
+    }
+
+
+    lines.push(
+        `名前：${getDisplayValue(card.name)}`,
+        `読み方：${getDisplayValue(card.reading)}`,
+        `文明：${formatCivilizationsForCopy(card)}`,
+        `種族：${getDisplayValue(card.race)}`,
+        `コスト：${getDisplayValue(card.cost)}`,
+        `パワー：${getDisplayValue(card.power)}`,
+        `カードタイプ：${getDisplayValue(
+            cardTypeOverride ?? card.cardType
+        )}`,
+        `能力：`,
+        formatAbilityForCopy(card.ability)
+    );
+
+
+    return lines.join("\n");
+
+}
+
 
 async function copyTemplate(
     id
@@ -4556,36 +4782,26 @@ async function copyTemplate(
                 : [];
 
 
-        faces.forEach(
-            (face, index) => {
-
-                template +=
-                    `【第${index + 1}面】
-名前：
-読み方：
-文明：
-種族：
-コスト：
-パワー：
-カードタイプ：
-能力：`;
-
-
-                if (
-                    index <
-                    faces.length - 1
-                ) {
-
-                    template +=
-                        `
-
---------------------
-`;
-
-                }
-
-            }
-        );
+        template =
+            faces.map(
+                (face, index) =>
+                    buildCardCopyText(
+                        {
+                            name: face.name,
+                            reading: face.reading,
+                            civilizations: face.civilizations,
+                            civilization: face.civilization,
+                            race: face.race,
+                            cost: face.cost,
+                            power: face.power,
+                            cardType: face.cardType,
+                            ability: face.ability
+                        },
+                        `【第${index + 1}面】`
+                    )
+            ).join(
+                "\n\n--------------------\n\n"
+            );
 
     }
 
@@ -4598,25 +4814,39 @@ async function copyTemplate(
         card.isTwinpact
     ) {
 
+        const top =
+            buildCardCopyText(
+                {
+                    name: card.name,
+                    reading: card.reading,
+                    civilizations: card.civilizations,
+                    civilization: card.civilization,
+                    race: card.race,
+                    cost: card.cost,
+                    power: card.power,
+                    cardType: card.cardType,
+                    ability: card.ability
+                },
+                "【上面】"
+            );
+
+
+        const bottom =
+            [
+                "【下面】",
+                `名前：${getDisplayValue(card.bottomName)}`,
+                `読み方：${getDisplayValue(card.bottomReading)}`,
+                `文明：${formatCivilizationsForCopy(card, true)}`,
+                `種族：${getDisplayValue(card.bottomRace)}`,
+                `コスト：${getDisplayValue(card.bottomCost)}`,
+                `カードタイプ：${getDisplayValue(card.bottomCardType)}`,
+                "能力：",
+                formatAbilityForCopy(card.bottomAbility)
+            ].join("\n");
+
+
         template =
-            `【上面】
-名前：
-読み方：
-文明：
-種族：
-コスト：
-パワー：
-カードタイプ：
-能力：
---------------------
-【下面】
-名前：
-読み方：
-文明：
-種族：
-コスト：
-カードタイプ：
-能力：`;
+            `${top}\n\n--------------------\n\n${bottom}`;
 
     }
 
@@ -4628,14 +4858,7 @@ async function copyTemplate(
     else {
 
         template =
-            `名前：
-読み方：
-文明：
-種族：
-コスト：
-パワー：
-カードタイプ：
-能力：`;
+            buildCardCopyText(card);
 
     }
 
@@ -4648,7 +4871,7 @@ async function copyTemplate(
 
 
         alert(
-            "テンプレートをコピーしました。"
+            "カード情報をコピーしました。"
         );
 
 
@@ -4685,7 +4908,7 @@ async function copyTemplate(
             );
 
             alert(
-                "テンプレートをコピーしました。"
+                "カード情報をコピーしました。"
             );
 
         } catch {
