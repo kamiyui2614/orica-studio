@@ -1437,21 +1437,10 @@ function createSpecialFace(
                 種族
             </label>
 
-            <div class="input-with-button">
-
-                <input
-                    type="text"
-                    class="special-race"
-                >
-
-                <button
-                    type="button"
-                    class="small-button slash-button special-race-slash-button"
-                >
-                    /
-                </button>
-
-            </div>
+            <input
+                type="text"
+                class="special-race"
+            >
 
         </div>
 
@@ -1537,35 +1526,6 @@ function createSpecialFace(
 
             }
         );
-
-
-    const specialRace =
-        wrapper.querySelector(
-            ".special-race"
-        );
-
-    const specialRaceSlashButton =
-        wrapper.querySelector(
-            ".special-race-slash-button"
-        );
-
-    if (
-        specialRace &&
-        specialRaceSlashButton
-    ) {
-
-        specialRaceSlashButton.addEventListener(
-            "click",
-            () => {
-
-                insertSlashIntoInput(
-                    specialRace
-                );
-
-            }
-        );
-
-    }
 
 
     const ability =
@@ -1833,7 +1793,7 @@ function getSpecialFaceData() {
 
                     civilization:
                         civilizations.join(
-                            "・"
+                            "/"
                         ),
 
                     race:
@@ -2070,16 +2030,8 @@ function insertSlash(
     id
 ) {
 
-    insertSlashIntoInput(
-        $(id)
-    );
-
-}
-
-
-function insertSlashIntoInput(
-    input
-) {
+    const input =
+        $(id);
 
     if (!input) {
         return;
@@ -2087,10 +2039,10 @@ function insertSlashIntoInput(
 
 
     const start =
-        input.selectionStart ?? input.value.length;
+        input.selectionStart;
 
     const end =
-        input.selectionEnd ?? input.value.length;
+        input.selectionEnd;
 
 
     input.value =
@@ -3709,7 +3661,7 @@ function saveCard() {
 
             civilization:
                 civilizations.join(
-                    "・"
+                    "/"
                 ),
 
             cost:
@@ -3791,7 +3743,7 @@ function saveCard() {
 
             civilization:
                 civilizations.join(
-                    "・"
+                    "/"
                 ),
 
             cost:
@@ -3851,7 +3803,7 @@ function saveCard() {
 
             bottomCivilization:
                 bottomCivilizations.join(
-                    "・"
+                    "/"
                 ),
 
             bottomCost:
@@ -4304,7 +4256,7 @@ function renderNormalDetail(
         "文明":
             getCardCivilizations(
                 card
-            ).join("・"),
+            ).join("/"),
 
         "種族":
             card.race,
@@ -4379,7 +4331,7 @@ function renderNormalDetail(
                         card.bottomCivilization ||
                         ""
                     )
-                ).join("・"),
+                ).join("/"),
 
             "種族":
                 card.bottomRace,
@@ -4490,7 +4442,7 @@ function renderSpecialDetail(
                             face.civilization ||
                             ""
                         )
-                    ).join("・"),
+                    ).join("/"),
 
                 "種族":
                     face.race,
@@ -4561,8 +4513,7 @@ function appendDetailRow(
     );
 
 
-    // 能力欄は「能力：」の次の行から表示し、
-    // 入力時の改行も維持
+    // 能力欄は入力時の改行を維持
     if (
         label === "能力"
     ) {
@@ -4582,13 +4533,6 @@ function appendDetailRow(
             );
 
         } else {
-
-            p.appendChild(
-                document.createElement(
-                    "br"
-                )
-            );
-
 
             const lines =
                 ability.split(/\r?\n/);
@@ -4621,16 +4565,11 @@ function appendDetailRow(
 
     } else {
 
-        const displayValue =
-            String(
-                value ?? ""
-            ).trim() ||
-            "-";
-
-
         p.appendChild(
             document.createTextNode(
-                displayValue
+                String(
+                    value ?? "-"
+                ) || "-"
             )
         );
 
@@ -4642,6 +4581,7 @@ function appendDetailRow(
     );
 
 }
+
 
 
 // =========================
@@ -4691,7 +4631,7 @@ function formatCivilizationsForCopy(
 
 
     return (
-        civilizations.join("・") || "-"
+        civilizations.join("/") || "-"
     );
 
 }
