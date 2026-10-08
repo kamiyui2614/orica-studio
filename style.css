@@ -319,6 +319,7 @@ textarea {
     margin-bottom: 0;
 }
 
+.special-face h3,
 .special-face h4 {
     margin: 0 0 14px;
     font-size: 17px;
@@ -458,12 +459,14 @@ textarea {
     margin-bottom: 18px;
 }
 
-.detail-header h2 {
-    margin: 0;
+.detail-header h2,
+#cardDetail > h3 {
+    margin: 0 0 18px;
     overflow-wrap: anywhere;
 }
 
-.detail-content p {
+.detail-content p,
+#cardDetail p {
     margin: 7px 0;
 }
 
