@@ -1437,10 +1437,21 @@ function createSpecialFace(
                 種族
             </label>
 
-            <input
-                type="text"
-                class="special-race"
-            >
+            <div class="input-with-button">
+
+                <input
+                    type="text"
+                    class="special-race"
+                >
+
+                <button
+                    type="button"
+                    class="small-button slash-button special-race-slash-button"
+                >
+                    /
+                </button>
+
+            </div>
 
         </div>
 
@@ -1504,6 +1515,26 @@ function createSpecialFace(
         </div>
 
     `;
+
+
+    const specialRaceSlashButton =
+        wrapper.querySelector(
+            ".special-race-slash-button"
+        );
+
+
+    specialRaceSlashButton?.addEventListener(
+        "click",
+        () => {
+
+            insertSlashIntoInput(
+                wrapper.querySelector(
+                    ".special-race"
+                )
+            );
+
+        }
+    );
 
 
     wrapper
@@ -4086,6 +4117,9 @@ function showCardDetail(
     container.innerHTML =
         "";
 
+    container.className =
+        "detail-card";
+
 
     const title =
         document.createElement(
@@ -4516,6 +4550,10 @@ function appendDetailRow(
     if (
         label === "能力"
     ) {
+
+        strong.style.display =
+            "block";
+
 
         const ability =
             String(
