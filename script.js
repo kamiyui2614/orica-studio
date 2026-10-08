@@ -4,672 +4,1542 @@
 
 const STORAGE_KEY = "oricaStudioCards";
 
-let cards =
-    JSON.parse(
-        localStorage.getItem(STORAGE_KEY)
-    ) || [];
-
+let cards = [];
 let editingCardId = null;
+
 let isTwinpact = false;
 let isSpecial = false;
+let specialType = null;
+// "dragheart" / "psychic"
+
 let specialMode = null;
+// "double" / "3d"
+
+// ドラグハート / サイキックで
+// 両面・3Dの選択状態を別々に記憶
+let dragHeartMode = "double";
+let psychicMode = "double";
 
 
 // =========================
-// DOM
+// 初期化
 // =========================
 
-const createSection =
-    document.getElementById("createSection");
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
 
-const listSection =
-    document.getElementById("listSection");
+        loadCards();
 
-const detailSection =
-    document.getElementById("detailSection");
+        bindEvents();
 
-const createTabButton =
-    document.getElementById("createTabButton");
+        updateSpecialModeUI();
+        updateTwinpactUI();
+        updateSearchCivilizationUI();
 
-const listTabButton =
-    document.getElementById("listTabButton");
+        renderCardList();
 
-const cardList =
-    document.getElementById("cardList");
+        showCreateSection();
 
-const cardDetail =
-    document.getElementById("cardDetail");
-
-const backToListButton =
-    document.getElementById("backToListButton");
-
-const saveButton =
-    document.getElementById("saveButton");
-
-const resetButton =
-    document.getElementById("resetButton");
-
-const normalCardPanel =
-    document.getElementById("normalCardPanel");
-
-const normalCardFields =
-    document.getElementById("normalCardFields");
-
-const normalAbilityField =
-    document.getElementById("normalAbilityField");
-
-const twinpactPanel =
-    document.getElementById("twinpactPanel");
-
-const specialPanel =
-    document.getElementById("multiFacePanel");
-
-const specialFaceContainer =
-    document.getElementById("multiFaceInputs");
-
-const twinpactButton =
-    document.getElementById("twinpactButton");
-
-const specialModeButton =
-    document.getElementById("multiFaceButton");
-
-const specialModeButtons =
-    document.getElementById("multiFaceModePanel");
-
-const doubleSideButton =
-    document.getElementById("doubleFaceButton");
-
-const threeDButton =
-    document.getElementById("tripleFaceButton");
-
-const cardName =
-    document.getElementById("cardName");
-
-const reading =
-    document.getElementById("reading");
-
-const cardType =
-    document.getElementById("cardType");
-
-const cost =
-    document.getElementById("cost");
-
-const power =
-    document.getElementById("power");
-
-const race =
-    document.getElementById("race");
-
-const ability =
-    document.getElementById("ability");
-
-const civilizationButtons =
-    document.querySelectorAll(
-        "#civilizationButtons .civilization-button"
-    );
-
-const raceSlashButton =
-    document.getElementById("raceSlashButton");
-
-const bottomCardType =
-    document.getElementById("bottomCardType");
-
-const bottomCardName =
-    document.getElementById("bottomCardName");
-
-const bottomReading =
-    document.getElementById("bottomReading");
-
-const bottomCivilizationButtons =
-    document.querySelectorAll(
-        "#bottomCivilizationButtons .civilization-button"
-    );
-
-const bottomCost =
-    document.getElementById("bottomCost");
-
-const bottomRace =
-    document.getElementById("bottomRace");
-
-const bottomRaceSlashButton =
-    document.getElementById("bottomRaceSlashButton");
-
-const bottomAbility =
-    document.getElementById("bottomAbility");
-
-const searchToggleButton =
-    document.getElementById("searchToggleButton");
-
-const searchPanel =
-    document.getElementById("searchPanel");
-
-const searchKeyword =
-    document.getElementById("searchKeyword");
-
-const searchCostMin =
-    document.getElementById("searchCostMin");
-
-const searchCostMax =
-    document.getElementById("searchCostMax");
-
-const searchPowerMin =
-    document.getElementById("searchPowerMin");
-
-const searchPowerMax =
-    document.getElementById("searchPowerMax");
-
-const searchCardType =
-    document.getElementById("searchCardType");
-
-const searchCivilizationButtons =
-    document.querySelectorAll(
-        "#searchCivilizationButtons .search-civilization-button"
-    );
-
-const searchCivilizationArea =
-    document.getElementById(
-        "searchCivilizationButtons"
-    );
-
-const searchSingleColorButton =
-    document.getElementById(
-        "searchSingleColorButton"
-    );
-
-const searchMultiColorButton =
-    document.getElementById(
-        "searchMultiColorButton"
-    );
-
-const searchExactMatchButton =
-    document.getElementById(
-        "searchExactMatchButton"
-    );
-
-const favoritesOnly =
-    document.getElementById(
-        "favoritesOnly"
-    );
-
-let searchCivilizationMode = null;
-let searchCivilizationExact = false;
+    }
+);
 
 
 // =========================
-// 保存
+// DOM取得
 // =========================
 
-function saveCards() {
-
-    localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(cards)
-    );
+function $(id) {
+    return document.getElementById(id);
 }
 
 
 // =========================
-// タブ
+// localStorage
+// =========================
+
+function loadCards() {
+
+    try {
+
+        const saved =
+            localStorage.getItem(
+                STORAGE_KEY
+            );
+
+        if (!saved) {
+
+            cards = [];
+
+            return;
+
+        }
+
+        const parsed =
+            JSON.parse(saved);
+
+        cards =
+            Array.isArray(parsed)
+                ? parsed
+                : [];
+
+    } catch (error) {
+
+        console.error(
+            "カードデータの読み込みに失敗しました。",
+            error
+        );
+
+        cards = [];
+
+    }
+
+}
+
+
+function saveCards() {
+
+    try {
+
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(cards)
+        );
+
+    } catch (error) {
+
+        console.error(
+            "カードデータの保存に失敗しました。",
+            error
+        );
+
+        alert(
+            "カードデータの保存に失敗しました。"
+        );
+
+    }
+
+}
+
+
+// =========================
+// イベント登録
+// =========================
+
+function bindEvents() {
+
+    // -------------------------
+    // 上部メニュー
+    // -------------------------
+
+    $("createTabButton")?.addEventListener(
+        "click",
+        () => {
+
+            showCreateSection();
+
+        }
+    );
+
+
+    $("listTabButton")?.addEventListener(
+        "click",
+        () => {
+
+            showListSection();
+
+        }
+    );
+
+
+    // -------------------------
+    // ツインパクト
+    // -------------------------
+
+    $("twinpactButton")?.addEventListener(
+        "click",
+        () => {
+
+            if (isTwinpact) {
+
+                isTwinpact = false;
+
+            } else {
+
+                isTwinpact = true;
+
+                isSpecial = false;
+                specialType = null;
+                specialMode = null;
+
+            }
+
+            updateSpecialModeUI();
+            updateTwinpactUI();
+
+        }
+    );
+
+
+    // -------------------------
+    // ドラグハート
+    // -------------------------
+
+    $("dragHeartButton")?.addEventListener(
+        "click",
+        () => {
+
+            if (
+                isSpecial &&
+                specialType === "dragheart"
+            ) {
+
+                isSpecial = false;
+                specialType = null;
+                specialMode = null;
+
+            } else {
+
+                isTwinpact = false;
+
+                isSpecial = true;
+                specialType = "dragheart";
+
+                specialMode =
+                    dragHeartMode;
+
+            }
+
+            updateSpecialModeUI();
+            updateTwinpactUI();
+
+        }
+    );
+
+
+    // -------------------------
+    // サイキック
+    // -------------------------
+
+    $("psychicButton")?.addEventListener(
+        "click",
+        () => {
+
+            if (
+                isSpecial &&
+                specialType === "psychic"
+            ) {
+
+                isSpecial = false;
+                specialType = null;
+                specialMode = null;
+
+            } else {
+
+                isTwinpact = false;
+
+                isSpecial = true;
+                specialType = "psychic";
+
+                specialMode =
+                    psychicMode;
+
+            }
+
+            updateSpecialModeUI();
+            updateTwinpactUI();
+
+        }
+    );
+
+
+    // -------------------------
+    // 両面
+    // -------------------------
+
+    $("doubleFaceButton")?.addEventListener(
+        "click",
+        () => {
+
+            if (!isSpecial) {
+                return;
+            }
+
+            saveCurrentSpecialFaces();
+
+            specialMode = "double";
+
+            if (
+                specialType === "dragheart"
+            ) {
+
+                dragHeartMode = "double";
+
+            }
+
+            if (
+                specialType === "psychic"
+            ) {
+
+                psychicMode = "double";
+
+            }
+
+            renderSpecialFaces();
+
+            updateSpecialModeUI();
+
+        }
+    );
+
+
+    // -------------------------
+    // 3D
+    // -------------------------
+
+    $("tripleFaceButton")?.addEventListener(
+        "click",
+        () => {
+
+            if (!isSpecial) {
+                return;
+            }
+
+            saveCurrentSpecialFaces();
+
+            specialMode = "3d";
+
+            if (
+                specialType === "dragheart"
+            ) {
+
+                dragHeartMode = "3d";
+
+            }
+
+            if (
+                specialType === "psychic"
+            ) {
+
+                psychicMode = "3d";
+
+            }
+
+            renderSpecialFaces();
+
+            updateSpecialModeUI();
+
+        }
+    );
+
+
+    // -------------------------
+    // 保存
+    // -------------------------
+
+    $("saveButton")?.addEventListener(
+        "click",
+        saveCard
+    );
+
+
+    // -------------------------
+    // リセット
+    // -------------------------
+
+    $("resetButton")?.addEventListener(
+        "click",
+        resetForm
+    );
+
+
+    // -------------------------
+    // 種族 /
+    // -------------------------
+
+    $("raceSlashButton")?.addEventListener(
+        "click",
+        () => {
+
+            insertSlash("race");
+
+        }
+    );
+
+
+    $("bottomRaceSlashButton")?.addEventListener(
+        "click",
+        () => {
+
+            insertSlash(
+                "bottomRace"
+            );
+
+        }
+    );
+
+
+    // -------------------------
+    // 能力欄
+    // -------------------------
+
+    setupAbilityInput(
+        "ability"
+    );
+
+    setupAbilityInput(
+        "bottomAbility"
+    );
+
+
+    // -------------------------
+    // 検索表示
+    // -------------------------
+
+    $("searchToggleButton")?.addEventListener(
+        "click",
+        () => {
+
+            $("searchPanel")
+                ?.classList.toggle(
+                    "hidden"
+                );
+
+        }
+    );
+
+
+    // -------------------------
+    // 検索
+    // -------------------------
+
+    const searchInputs = [
+
+        "searchKeyword",
+        "searchCostMin",
+        "searchCostMax",
+        "searchPowerMin",
+        "searchPowerMax",
+        "searchCardType"
+
+    ];
+
+
+    searchInputs.forEach(
+        id => {
+
+            $(id)?.addEventListener(
+                "input",
+                () => {
+
+                    renderCardList();
+
+                }
+            );
+
+        }
+    );
+
+
+    $("favoritesOnly")?.addEventListener(
+        "change",
+        renderCardList
+    );
+
+
+    // -------------------------
+    // 条件クリア
+    // -------------------------
+
+    $("clearSearchButton")?.addEventListener(
+        "click",
+        clearSearchConditions
+    );
+
+
+    // -------------------------
+    // 文明検索
+    // -------------------------
+
+    $("searchSingleColorButton")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                setSearchCivilizationMode(
+                    "single"
+                );
+
+            }
+        );
+
+
+    $("searchMultiColorButton")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                setSearchCivilizationMode(
+                    "multi"
+                );
+
+            }
+        );
+
+
+    $("searchExactMatchButton")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                if (
+                    searchCivilizationMode !==
+                    "multi"
+                ) {
+
+                    return;
+
+                }
+
+                searchExactMatch =
+                    !searchExactMatch;
+
+                updateSearchCivilizationUI();
+
+                renderCardList();
+
+            }
+        );
+
+
+    setupSearchCivilizationButtons();
+
+
+    // -------------------------
+    // 一覧へ戻る
+    // -------------------------
+
+    $("backToListButton")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                showListSection();
+
+            }
+        );
+
+}
+
+
+// =========================
+// 検索条件クリア
+// =========================
+
+function clearSearchConditions() {
+
+    // -------------------------
+    // テキスト検索
+    // -------------------------
+
+    const searchKeyword =
+        $("searchKeyword");
+
+    if (searchKeyword) {
+
+        searchKeyword.value = "";
+
+    }
+
+
+    // -------------------------
+    // コスト
+    // -------------------------
+
+    const searchCostMin =
+        $("searchCostMin");
+
+    if (searchCostMin) {
+
+        searchCostMin.value = "";
+
+    }
+
+
+    const searchCostMax =
+        $("searchCostMax");
+
+    if (searchCostMax) {
+
+        searchCostMax.value = "";
+
+    }
+
+
+    // -------------------------
+    // パワー
+    // -------------------------
+
+    const searchPowerMin =
+        $("searchPowerMin");
+
+    if (searchPowerMin) {
+
+        searchPowerMin.value = "";
+
+    }
+
+
+    const searchPowerMax =
+        $("searchPowerMax");
+
+    if (searchPowerMax) {
+
+        searchPowerMax.value = "";
+
+    }
+
+
+    // -------------------------
+    // カードタイプ
+    // -------------------------
+
+    const searchCardType =
+        $("searchCardType");
+
+    if (searchCardType) {
+
+        searchCardType.value = "";
+
+    }
+
+
+    // -------------------------
+    // お気に入り
+    // -------------------------
+
+    const favoritesOnly =
+        $("favoritesOnly");
+
+    if (favoritesOnly) {
+
+        favoritesOnly.checked = false;
+
+    }
+
+
+    // -------------------------
+    // 文明検索
+    // -------------------------
+
+    searchCivilizationMode = null;
+    searchExactMatch = false;
+
+
+    const civilizationButtons =
+        $("searchCivilizationButtons");
+
+    if (civilizationButtons) {
+
+        civilizationButtons
+            .querySelectorAll(
+                ".search-civilization-button.selected"
+            )
+            .forEach(
+                button => {
+
+                    button.classList.remove(
+                        "selected"
+                    );
+
+                }
+            );
+
+    }
+
+
+    // 文明検索UIを初期状態へ
+    updateSearchCivilizationUI();
+
+
+    // 一覧を更新
+    renderCardList();
+
+}
+
+
+// =========================
+// セクション
 // =========================
 
 function showCreateSection() {
 
-    createSection.classList.remove(
-        "hidden"
-    );
+    $("createSection")
+        ?.classList.remove(
+            "hidden"
+        );
 
-    listSection.classList.add(
-        "hidden"
-    );
+    $("listSection")
+        ?.classList.add(
+            "hidden"
+        );
 
-    detailSection.classList.add(
-        "hidden"
-    );
+    $("detailSection")
+        ?.classList.add(
+            "hidden"
+        );
+
+
+    $("createTabButton")
+        ?.classList.add(
+            "active"
+        );
+
+    $("listTabButton")
+        ?.classList.remove(
+            "active"
+        );
+
 }
+
 
 function showListSection() {
 
-    createSection.classList.add(
-        "hidden"
-    );
+    $("createSection")
+        ?.classList.add(
+            "hidden"
+        );
 
-    listSection.classList.remove(
-        "hidden"
-    );
+    $("listSection")
+        ?.classList.remove(
+            "hidden"
+        );
 
-    detailSection.classList.add(
-        "hidden"
-    );
+    $("detailSection")
+        ?.classList.add(
+            "hidden"
+        );
+
+
+    $("createTabButton")
+        ?.classList.remove(
+            "active"
+        );
+
+    $("listTabButton")
+        ?.classList.add(
+            "active"
+        );
+
 
     renderCardList();
+
 }
 
-createTabButton.addEventListener(
-    "click",
-    showCreateSection
-);
-
-listTabButton.addEventListener(
-    "click",
-    showListSection
-);
-
 
 // =========================
-// 文明
+// 文明ボタン
 // =========================
 
-function getSelectedCivilizations(
-    buttons
+function setupCivilizationButtons(
+    containerId
 ) {
 
-    return Array.from(buttons)
-        .filter(
-            button =>
-                button.classList.contains(
-                    "selected"
-                )
+    const container =
+        $(containerId);
+
+    if (!container) {
+        return;
+    }
+
+
+    container
+        .querySelectorAll(
+            ".civilization-button"
         )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        button.classList.toggle(
+                            "selected"
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+}
+
+
+function getCivilizationArray(
+    containerId
+) {
+
+    const container =
+        $(containerId);
+
+    if (!container) {
+        return [];
+    }
+
+
+    return [
+        ...container.querySelectorAll(
+            ".civilization-button.selected"
+        )
+    ]
         .map(
             button =>
                 button.dataset.civilization
-        );
+        )
+        .filter(Boolean);
+
 }
 
-function setSelectedCivilizations(
-    buttons,
+
+function setCivilizationButtons(
+    containerId,
     civilizations
 ) {
+
+    const container =
+        $(containerId);
+
+    if (!container) {
+        return;
+    }
+
 
     const set =
         new Set(
             civilizations || []
         );
 
-    buttons.forEach(button => {
 
-        button.classList.toggle(
-            "selected",
-            set.has(
-                button.dataset.civilization
-            )
-        );
-    });
-}
-
-function setupCivilizationButtons(
-    buttons
-) {
-
-    buttons.forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
+    container
+        .querySelectorAll(
+            ".civilization-button"
+        )
+        .forEach(
+            button => {
 
                 button.classList.toggle(
-                    "selected"
+                    "selected",
+                    set.has(
+                        button.dataset.civilization
+                    )
                 );
 
-                renderCardList();
             }
         );
-    });
-}
 
-setupCivilizationButtons(
-    civilizationButtons
-);
-
-setupCivilizationButtons(
-    bottomCivilizationButtons
-);
-
-setupCivilizationButtons(
-    searchCivilizationButtons
-);
-
-
-// =========================
-// 文明配列
-// =========================
-
-function getCivilizationArray(
-    civilization
-) {
-
-    if (
-        civilization === null ||
-        civilization === undefined
-    ) {
-        return [];
-    }
-
-    return String(civilization)
-        .split(/[・/,、\s]+/)
-        .map(
-            value =>
-                value.trim()
-        )
-        .filter(Boolean);
 }
 
 
 // =========================
-// カード全体の文明
+// カード文明取得
 // =========================
 
 function getCardCivilizations(
     card
 ) {
 
-    const civilizations = [];
+    const result = [];
 
-    function addCivilizations(
-        value
-    ) {
 
-        getCivilizationArray(
-            value
-        ).forEach(
-            civilization => {
-
-                if (
-                    !civilizations.includes(
-                        civilization
-                    )
-                ) {
-                    civilizations.push(
-                        civilization
-                    );
-                }
-            }
-        );
-    }
-
-    addCivilizations(
-        card.civilization
-    );
+    // -------------------------
+    // 通常カード
+    // -------------------------
 
     if (
-        card.isTwinpact &&
-        card.bottomCard
+        Array.isArray(
+            card.civilizations
+        )
     ) {
 
-        addCivilizations(
-            card.bottomCard.civilization
+        result.push(
+            ...card.civilizations
         );
+
     }
+
+
+    if (card.civilization) {
+
+        result.push(
+            ...splitCivilizations(
+                card.civilization
+            )
+        );
+
+    }
+
+
+    // -------------------------
+    // ツインパクト
+    // -------------------------
+
+    if (
+        card.isTwinpact
+    ) {
+
+        if (
+            Array.isArray(
+                card.bottomCivilizations
+            )
+        ) {
+
+            result.push(
+                ...card.bottomCivilizations
+            );
+
+        }
+
+
+        if (
+            card.bottomCivilization
+        ) {
+
+            result.push(
+                ...splitCivilizations(
+                    card.bottomCivilization
+                )
+            );
+
+        }
+
+    }
+
+
+    // -------------------------
+    // ドラグハート / サイキック
+    // -------------------------
 
     if (
         card.isSpecial &&
-        Array.isArray(card.faces)
+        Array.isArray(
+            card.faces
+        )
     ) {
 
         card.faces.forEach(
             face => {
 
-                addCivilizations(
+                if (
+                    Array.isArray(
+                        face.civilizations
+                    )
+                ) {
+
+                    result.push(
+                        ...face.civilizations
+                    );
+
+                }
+
+
+                if (
                     face.civilization
-                );
+                ) {
+
+                    result.push(
+                        ...splitCivilizations(
+                            face.civilization
+                        )
+                    );
+
+                }
+
             }
         );
+
     }
 
-    return civilizations;
-}
 
-function isCardMulticolor(card) {
+    return [
+        ...new Set(
+            result.filter(Boolean)
+        )
+    ];
 
-    const colored =
-        getCardCivilizations(card)
-            .filter(
-                civilization =>
-                    civilization !== "無色"
-            );
-
-    return colored.length >= 2;
-}
-
-function isCardSingleColor(card) {
-
-    return !isCardMulticolor(card);
 }
 
 
-// =========================
-// 検索文明UI
-// =========================
+function splitCivilizations(
+    value
+) {
 
-function updateSearchCivilizationModeUI() {
+    return String(value)
+        .split(
+            /[・,、\s]+/
+        )
+        .map(
+            value =>
+                value.trim()
+        )
+        .filter(Boolean);
 
-    searchSingleColorButton.classList.toggle(
-        "selected",
-        searchCivilizationMode === "single"
-    );
-
-    searchMultiColorButton.classList.toggle(
-        "selected",
-        searchCivilizationMode === "multi"
-    );
-
-    searchExactMatchButton.classList.toggle(
-        "selected",
-        searchCivilizationExact
-    );
-
-    searchExactMatchButton.classList.toggle(
-        "hidden",
-        searchCivilizationMode !== "multi"
-    );
-
-    searchCivilizationArea.classList.toggle(
-        "hidden",
-        searchCivilizationMode === null
-    );
 }
 
-searchSingleColorButton.addEventListener(
-    "click",
-    () => {
 
-        searchCivilizationMode =
-            searchCivilizationMode === "single"
-                ? null
-                : "single";
-
-        searchCivilizationExact = false;
-
-        updateSearchCivilizationModeUI();
-        renderCardList();
-    }
-);
-
-searchMultiColorButton.addEventListener(
-    "click",
-    () => {
-
-        searchCivilizationMode =
-            searchCivilizationMode === "multi"
-                ? null
-                : "multi";
-
-        searchCivilizationExact = false;
-
-        updateSearchCivilizationModeUI();
-        renderCardList();
-    }
-);
-
-searchExactMatchButton.addEventListener(
-    "click",
-    () => {
-
-        if (
-            searchCivilizationMode !==
-            "multi"
-        ) {
-            return;
-        }
-
-        searchCivilizationExact =
-            !searchCivilizationExact;
-
-        updateSearchCivilizationModeUI();
-        renderCardList();
-    }
-);
-
-
-// =========================
-// 検索文明判定
-// =========================
-
-function matchesCivilizationFilter(
+function getColoredCivilizations(
     card
 ) {
 
-    const selected =
-        getSelectedCivilizations(
-            searchCivilizationButtons
-        );
-
-    const cardCivilizations =
-        getCardCivilizations(card);
-
-
-    if (
-        searchCivilizationMode ===
-        "single"
-    ) {
-
-        if (
-            !isCardSingleColor(card)
-        ) {
-            return false;
-        }
-
-        if (
-            selected.length === 0
-        ) {
-            return true;
-        }
-
-        return selected.some(
+    return getCardCivilizations(
+        card
+    )
+        .filter(
             civilization =>
-                cardCivilizations.includes(
-                    civilization
-                )
+                civilization !== "無色"
         );
-    }
+
+}
 
 
-    if (
-        searchCivilizationMode ===
-        "multi"
-    ) {
+function isCardMulticolor(
+    card
+) {
 
-        if (
-            !isCardMulticolor(card)
-        ) {
-            return false;
-        }
-
-        if (
-            selected.length === 0
-        ) {
-            return true;
-        }
-
-
-        if (
-            searchCivilizationExact
-        ) {
-
-            const selectedColored =
-                selected.filter(
-                    civilization =>
-                        civilization !==
-                        "無色"
-                );
-
-            const cardColored =
-                cardCivilizations.filter(
-                    civilization =>
-                        civilization !==
-                        "無色"
-                );
-
-
-            if (
-                cardColored.length !==
-                selectedColored.length
-            ) {
-                return false;
-            }
-
-
-            return selectedColored.every(
-                civilization =>
-                    cardColored.includes(
-                        civilization
-                    )
-            );
-        }
-
-
-        return selected.some(
-            civilization =>
-                cardCivilizations.includes(
-                    civilization
-                )
-        );
-    }
-
-
-    if (
-        selected.length === 0
-    ) {
-        return true;
-    }
-
-
-    return selected.every(
-        civilization =>
-            cardCivilizations.includes(
-                civilization
-            )
+    return (
+        getColoredCivilizations(
+            card
+        ).length >= 2
     );
+
+}
+
+
+function isCardSingleColor(
+    card
+) {
+
+    return (
+        getColoredCivilizations(
+            card
+        ).length <= 1
+    );
+
 }
 
 
 // =========================
-// 検索パネル
+// モードUI
 // =========================
 
-searchToggleButton.addEventListener(
-    "click",
-    () => {
+function updateSpecialModeUI() {
 
-        searchPanel.classList.toggle(
-            "hidden"
+    const twinpactButton =
+        $("twinpactButton");
+
+    const dragHeartButton =
+        $("dragHeartButton");
+
+    const psychicButton =
+        $("psychicButton");
+
+
+    // -------------------------
+    // ツインパクト
+    // -------------------------
+
+    if (twinpactButton) {
+
+        twinpactButton.textContent =
+            isTwinpact
+                ? "ツインパクト解除"
+                : "ツインパクト";
+
+
+        twinpactButton.classList.toggle(
+            "selected",
+            isTwinpact
         );
 
-        searchToggleButton.textContent =
-            searchPanel.classList.contains(
-                "hidden"
-            )
-                ? "検索"
-                : "検索を閉じる";
     }
-);
+
+
+    // -------------------------
+    // ドラグハート
+    // -------------------------
+
+    if (dragHeartButton) {
+
+        const selected =
+            isSpecial &&
+            specialType ===
+                "dragheart";
+
+
+        dragHeartButton.textContent =
+            selected
+                ? "ドラグハート解除"
+                : "ドラグハート";
+
+
+        dragHeartButton.classList.toggle(
+            "selected",
+            selected
+        );
+
+    }
+
+
+    // -------------------------
+    // サイキック
+    // -------------------------
+
+    if (psychicButton) {
+
+        const selected =
+            isSpecial &&
+            specialType ===
+                "psychic";
+
+
+        psychicButton.textContent =
+            selected
+                ? "サイキック解除"
+                : "サイキック";
+
+
+        psychicButton.classList.toggle(
+            "selected",
+            selected
+        );
+
+    }
+
+
+    // -------------------------
+    // 通常入力
+    // -------------------------
+
+    const normalFields =
+        $("normalCardFields");
+
+    const normalAbility =
+        $("normalAbilityField");
+
+
+    // -------------------------
+    // 特殊入力
+    // -------------------------
+
+    const multiFacePanel =
+        $("multiFacePanel");
+
+    const multiFaceModePanel =
+        $("multiFaceModePanel");
+
+
+    if (isSpecial) {
+
+        normalFields
+            ?.classList.add(
+                "hidden"
+            );
+
+        normalAbility
+            ?.classList.add(
+                "hidden"
+            );
+
+
+        multiFacePanel
+            ?.classList.remove(
+                "hidden"
+            );
+
+        multiFaceModePanel
+            ?.classList.remove(
+                "hidden"
+            );
+
+
+        if (!specialMode) {
+
+            specialMode =
+                specialType ===
+                    "dragheart"
+                    ? dragHeartMode
+                    : psychicMode;
+
+        }
+
+
+        if (
+            specialType ===
+            "dragheart"
+        ) {
+
+            dragHeartMode =
+                specialMode;
+
+        }
+
+
+        if (
+            specialType ===
+            "psychic"
+        ) {
+
+            psychicMode =
+                specialMode;
+
+        }
+
+
+        $("doubleFaceButton")
+            ?.classList.toggle(
+                "selected",
+                specialMode ===
+                    "double"
+            );
+
+
+        $("tripleFaceButton")
+            ?.classList.toggle(
+                "selected",
+                specialMode ===
+                    "3d"
+            );
+
+
+        const container =
+            $("multiFaceInputs");
+
+
+        if (
+            container &&
+            container.children.length === 0
+        ) {
+
+            renderSpecialFaces();
+
+        }
+
+    } else {
+
+        normalFields
+            ?.classList.remove(
+                "hidden"
+            );
+
+        normalAbility
+            ?.classList.remove(
+                "hidden"
+            );
+
+
+        multiFacePanel
+            ?.classList.add(
+                "hidden"
+            );
+
+        multiFaceModePanel
+            ?.classList.add(
+                "hidden"
+            );
+
+    }
+
+}
 
 
 // =========================
-// 能力入力
+// ツインパクトUI
 // =========================
 
-function setupAbilityInput(
+function updateTwinpactUI() {
+
+    const panel =
+        $("twinpactPanel");
+
+    if (!panel) {
+        return;
+    }
+
+
+    panel.classList.toggle(
+        "hidden",
+        !isTwinpact
+    );
+
+}
+
+
+// =========================
+// 特殊面の一時保存
+// =========================
+
+let temporarySpecialFaces = [];
+
+
+function saveCurrentSpecialFaces() {
+
+    const container =
+        $("multiFaceInputs");
+
+    if (!container) {
+        return;
+    }
+
+
+    if (
+        container.children.length > 0
+    ) {
+
+        temporarySpecialFaces =
+            getSpecialFaceData();
+
+    }
+
+}
+
+
+// =========================
+// 特殊面生成
+// =========================
+
+function createSpecialFace(
+    index
+) {
+
+    const wrapper =
+        document.createElement(
+            "div"
+        );
+
+
+    wrapper.className =
+        "special-face";
+
+
+    wrapper.innerHTML = `
+
+        <h3>
+            第${index}面
+        </h3>
+
+
+        <div class="form-group">
+
+            <label>
+                名前
+            </label>
+
+            <input
+                type="text"
+                class="special-name"
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                読み方
+            </label>
+
+            <input
+                type="text"
+                class="special-reading"
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                文明
+            </label>
+
+            <div class="civilization-buttons special-civilizations">
+
+                <button
+                    type="button"
+                    class="civilization-button"
+                    data-civilization="光"
+                >
+                    光
+                </button>
+
+                <button
+                    type="button"
+                    class="civilization-button"
+                    data-civilization="水"
+                >
+                    水
+                </button>
+
+                <button
+                    type="button"
+                    class="civilization-button"
+                    data-civilization="闇"
+                >
+                    闇
+                </button>
+
+                <button
+                    type="button"
+                    class="civilization-button"
+                    data-civilization="火"
+                >
+                    火
+                </button>
+
+                <button
+                    type="button"
+                    class="civilization-button"
+                    data-civilization="自然"
+                >
+                    自然
+                </button>
+
+                <button
+                    type="button"
+                    class="civilization-button"
+                    data-civilization="無色"
+                >
+                    無色
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                種族
+            </label>
+
+            <input
+                type="text"
+                class="special-race"
+            >
+
+        </div>
+
+
+        <div class="form-row">
+
+            <div class="form-group">
+
+                <label>
+                    コスト
+                </label>
+
+                <input
+                    type="text"
+                    class="special-cost"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    パワー
+                </label>
+
+                <input
+                    type="text"
+                    class="special-power"
+                >
+
+            </div>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                カードタイプ
+            </label>
+
+            <input
+                type="text"
+                class="special-card-type"
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                能力
+            </label>
+
+            <textarea
+                class="special-ability"
+            ></textarea>
+
+        </div>
+
+    `;
+
+
+    wrapper
+        .querySelectorAll(
+            ".civilization-button"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        button.classList.toggle(
+                            "selected"
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+    const ability =
+        wrapper.querySelector(
+            ".special-ability"
+        );
+
+
+    if (ability) {
+
+        setupSpecialAbilityInput(
+            ability
+        );
+
+    }
+
+
+    return wrapper;
+
+}
+
+
+// =========================
+// 特殊能力欄
+// =========================
+
+function setupSpecialAbilityInput(
     textarea
 ) {
 
@@ -678,12 +1548,17 @@ function setupAbilityInput(
         () => {
 
             if (
-                textarea.value.trim() === ""
+                textarea.value === ""
             ) {
-                textarea.value = "■ ";
+
+                textarea.value =
+                    "■ ";
+
             }
+
         }
     );
+
 
     textarea.addEventListener(
         "keydown",
@@ -692,16 +1567,18 @@ function setupAbilityInput(
             if (
                 event.key !== "Enter"
             ) {
+
                 return;
+
             }
 
-            event.preventDefault();
 
             const start =
                 textarea.selectionStart;
 
             const end =
                 textarea.selectionEnd;
+
 
             const before =
                 textarea.value.slice(
@@ -714,659 +1591,1411 @@ function setupAbilityInput(
                     end
                 );
 
+
             textarea.value =
                 before +
                 "\n■ " +
                 after;
 
-            textarea.selectionStart =
-                textarea.selectionEnd =
-                    start + 3;
-        }
-    );
-}
 
-setupAbilityInput(ability);
-setupAbilityInput(bottomAbility);
+            event.preventDefault();
 
-
-// =========================
-// 種族「/」
-// =========================
-
-function setupRaceSlash(
-    input,
-    button
-) {
-
-    button.addEventListener(
-        "click",
-        () => {
 
             const position =
-                input.selectionStart;
+                before.length + 3;
 
-            const before =
-                input.value.slice(
-                    0,
-                    position
-                );
 
-            const after =
-                input.value.slice(
-                    position
-                );
+            textarea.selectionStart =
+                position;
 
-            input.value =
-                before +
-                "/" +
-                after;
+            textarea.selectionEnd =
+                position;
 
-            input.focus();
-
-            input.selectionStart =
-                input.selectionEnd =
-                    position + 1;
         }
     );
+
 }
-
-setupRaceSlash(
-    race,
-    raceSlashButton
-);
-
-setupRaceSlash(
-    bottomRace,
-    bottomRaceSlashButton
-);
 
 
 // =========================
-// 特殊カード面
+// 特殊面描画
 // =========================
-
-function createSpecialFace(
-    index
-) {
-
-    const wrapper =
-        document.createElement(
-            "div"
-        );
-
-    wrapper.className =
-        "special-face";
-
-    wrapper.innerHTML = `
-        <h4>第${index + 1}面</h4>
-
-        <div class="form-group">
-            <label>名前</label>
-            <input type="text" data-field="name">
-        </div>
-
-        <div class="form-group">
-            <label>読み方</label>
-            <input type="text" data-field="reading">
-        </div>
-
-        <div class="form-group">
-            <label>文明</label>
-            <div class="civilization-buttons" data-civilizations>
-                <button type="button" class="civilization-button" data-civilization="光">光</button>
-                <button type="button" class="civilization-button" data-civilization="水">水</button>
-                <button type="button" class="civilization-button" data-civilization="闇">闇</button>
-                <button type="button" class="civilization-button" data-civilization="火">火</button>
-                <button type="button" class="civilization-button" data-civilization="自然">自然</button>
-                <button type="button" class="civilization-button" data-civilization="無色">無色</button>
-            </div>
-        </div>
-
-        <div class="form-row">
-            <div class="form-group">
-                <label>コスト</label>
-                <input type="text" data-field="cost">
-            </div>
-
-            <div class="form-group">
-                <label>パワー</label>
-                <input type="text" data-field="power">
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>種族</label>
-            <div class="input-with-button">
-                <input type="text" data-field="race">
-                <button
-                    type="button"
-                    class="small-button slash-button"
-                    data-slash
-                >
-                    /
-                </button>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>カードタイプ</label>
-            <input type="text" data-field="cardType">
-        </div>
-
-        <div class="form-group">
-            <label>能力</label>
-            <textarea data-field="ability"></textarea>
-        </div>
-    `;
-
-    const buttons =
-        wrapper.querySelectorAll(
-            ".civilization-button"
-        );
-
-    setupCivilizationButtons(
-        buttons
-    );
-
-    const slash =
-        wrapper.querySelector(
-            "[data-slash]"
-        );
-
-    const raceInput =
-        wrapper.querySelector(
-            '[data-field="race"]'
-        );
-
-    setupRaceSlash(
-        raceInput,
-        slash
-    );
-
-    const abilityInput =
-        wrapper.querySelector(
-            '[data-field="ability"]'
-        );
-
-    setupAbilityInput(
-        abilityInput
-    );
-
-    return wrapper;
-}
 
 function renderSpecialFaces() {
 
-    specialFaceContainer.innerHTML =
-        "";
+    const container =
+        $("multiFaceInputs");
+
+    if (!container) {
+        return;
+    }
+
+
+    let oldFaces = [];
+
+
+    if (
+        temporarySpecialFaces.length > 0
+    ) {
+
+        oldFaces =
+            JSON.parse(
+                JSON.stringify(
+                    temporarySpecialFaces
+                )
+            );
+
+    } else {
+
+        oldFaces =
+            getSpecialFaceData();
+
+    }
+
+
+    container.innerHTML = "";
+
 
     const count =
         specialMode === "3d"
             ? 3
             : 2;
 
+
     for (
-        let i = 0;
-        i < count;
+        let i = 1;
+        i <= count;
         i++
     ) {
 
-        specialFaceContainer.appendChild(
-            createSpecialFace(i)
+        const face =
+            createSpecialFace(i);
+
+
+        container.appendChild(
+            face
         );
 
+
         if (
-            i < count - 1
+            oldFaces[i - 1]
         ) {
 
-            const separator =
-                document.createElement(
-                    "hr"
-                );
-
-            separator.className =
-                "special-face-separator";
-
-            specialFaceContainer.appendChild(
-                separator
+            setSpecialFaceData(
+                face,
+                oldFaces[i - 1]
             );
+
         }
+
     }
+
+
+    temporarySpecialFaces =
+        getSpecialFaceData();
+
+
+    updateSpecialModeUIWithoutRender();
+
 }
+
+
+// =========================
+// 特殊面UIだけ更新
+// =========================
+
+function updateSpecialModeUIWithoutRender() {
+
+    $("doubleFaceButton")
+        ?.classList.toggle(
+            "selected",
+            specialMode ===
+                "double"
+        );
+
+
+    $("tripleFaceButton")
+        ?.classList.toggle(
+            "selected",
+            specialMode ===
+                "3d"
+        );
+
+}
+
+
+// =========================
+// 特殊面データ取得
+// =========================
 
 function getSpecialFaceData() {
 
-    const faces =
-        Array.from(
-            specialFaceContainer.querySelectorAll(
-                ".special-face"
-            )
+    const container =
+        $("multiFaceInputs");
+
+    if (!container) {
+        return [];
+    }
+
+
+    const result = [];
+
+
+    container
+        .querySelectorAll(
+            ".special-face"
+        )
+        .forEach(
+            face => {
+
+                const civilizations =
+                    [
+                        ...face.querySelectorAll(
+                            ".civilization-button.selected"
+                        )
+                    ]
+                        .map(
+                            button =>
+                                button.dataset
+                                    .civilization
+                        )
+                        .filter(Boolean);
+
+
+                result.push({
+
+                    name:
+                        face.querySelector(
+                            ".special-name"
+                        )?.value ||
+                        "",
+
+                    reading:
+                        face.querySelector(
+                            ".special-reading"
+                        )?.value ||
+                        "",
+
+                    civilizations,
+
+                    civilization:
+                        civilizations.join(
+                            "・"
+                        ),
+
+                    race:
+                        face.querySelector(
+                            ".special-race"
+                        )?.value ||
+                        "",
+
+                    cost:
+                        face.querySelector(
+                            ".special-cost"
+                        )?.value ||
+                        "",
+
+                    power:
+                        face.querySelector(
+                            ".special-power"
+                        )?.value ||
+                        "",
+
+                    cardType:
+                        face.querySelector(
+                            ".special-card-type"
+                        )?.value ||
+                        "",
+
+                    ability:
+                        face.querySelector(
+                            ".special-ability"
+                        )?.value ||
+                        ""
+
+                });
+
+            }
         );
 
-    return faces.map(face => {
 
-        const get =
-            field =>
-                face.querySelector(
-                    `[data-field="${field}"]`
-                );
+    return result;
 
-        const civilizationButtons =
-            face.querySelectorAll(
-                ".civilization-button"
-            );
-
-        return {
-            name:
-                get("name").value,
-
-            reading:
-                get("reading").value,
-
-            civilization:
-                getSelectedCivilizations(
-                    civilizationButtons
-                ).join("・"),
-
-            race:
-                get("race").value,
-
-            cost:
-                get("cost").value,
-
-            power:
-                get("power").value,
-
-            cardType:
-                get("cardType").value,
-
-            ability:
-                get("ability").value
-        };
-    });
 }
+
+
+// =========================
+// 特殊面データ設定
+// =========================
 
 function setSpecialFaceData(
-    faces
+    face,
+    data
 ) {
 
-    const faceElements =
-        specialFaceContainer.querySelectorAll(
-            ".special-face"
-        );
-
-    faceElements.forEach(
-        (faceElement, index) => {
-
-            const data =
-                faces[index];
-
-            if (!data) {
-                return;
-            }
-
-            const get =
-                field =>
-                    faceElement.querySelector(
-                        `[data-field="${field}"]`
-                    );
-
-            get("name").value =
-                data.name || "";
-
-            get("reading").value =
-                data.reading || "";
-
-            get("race").value =
-                data.race || "";
-
-            get("cost").value =
-                data.cost || "";
-
-            get("power").value =
-                data.power || "";
-
-            get("cardType").value =
-                data.cardType || "";
-
-            get("ability").value =
-                data.ability || "";
-
-            setSelectedCivilizations(
-                faceElement.querySelectorAll(
-                    ".civilization-button"
-                ),
-                getCivilizationArray(
-                    data.civilization
-                )
-            );
-        }
-    );
-}
-
-
-// =========================
-// モードUI
-// =========================
-
-function updateSpecialModeUI() {
-
-    specialModeButton.classList.toggle(
-        "selected",
-        isSpecial
-    );
-
-    specialModeButton.textContent =
-        isSpecial
-            ? "ドラグハート・サイキック解除"
-            : "ドラグハート・サイキック";
-
-    twinpactButton.classList.toggle(
-        "selected",
-        isTwinpact
-    );
-
-    twinpactButton.textContent =
-        isTwinpact
-            ? "ツインパクト解除"
-            : "ツインパクト";
-
-
-    if (isSpecial) {
-
-        specialModeButtons.classList.remove(
-            "hidden"
-        );
-
-        normalCardPanel.classList.remove(
-            "hidden"
-        );
-
-        /*
-         * ここが今回の重要部分。
-         *
-         * カードタイプは normalCardFields の中にあるので、
-         * 特殊モードでは normalCardFields ごと隠す。
-         *
-         * これによって、
-         * 「カードタイプ」だけが名前より上に残る問題を防ぐ。
-         */
-
-        normalCardFields.classList.add(
-            "hidden"
-        );
-
-        normalAbilityField.classList.add(
-            "hidden"
-        );
-
-        twinpactPanel.classList.add(
-            "hidden"
-        );
-
-        specialPanel.classList.remove(
-            "hidden"
-        );
-
-        if (!specialMode) {
-            specialMode = "double";
-        }
-
-        doubleSideButton.classList.toggle(
-            "selected",
-            specialMode === "double"
-        );
-
-        threeDButton.classList.toggle(
-            "selected",
-            specialMode === "3d"
-        );
-
+    if (!face || !data) {
         return;
     }
 
 
-    specialModeButtons.classList.add(
-        "hidden"
+    face.querySelector(
+        ".special-name"
+    ).value =
+        data.name ||
+        "";
+
+
+    face.querySelector(
+        ".special-reading"
+    ).value =
+        data.reading ||
+        "";
+
+
+    face.querySelector(
+        ".special-race"
+    ).value =
+        data.race ||
+        "";
+
+
+    face.querySelector(
+        ".special-cost"
+    ).value =
+        data.cost ??
+        "";
+
+
+    face.querySelector(
+        ".special-power"
+    ).value =
+        data.power ??
+        "";
+
+
+    face.querySelector(
+        ".special-card-type"
+    ).value =
+        data.cardType ||
+        "";
+
+
+    face.querySelector(
+        ".special-ability"
+    ).value =
+        data.ability ||
+        "";
+
+
+    const civilizations =
+        Array.isArray(
+            data.civilizations
+        )
+            ? data.civilizations
+            : splitCivilizations(
+                data.civilization ||
+                ""
+            );
+
+
+    face
+        .querySelectorAll(
+            ".civilization-button"
+        )
+        .forEach(
+            button => {
+
+                button.classList.toggle(
+                    "selected",
+                    civilizations.includes(
+                        button.dataset
+                            .civilization
+                    )
+                );
+
+            }
+        );
+
+}
+
+
+// =========================
+// 能力欄
+// =========================
+
+function setupAbilityInput(
+    id
+) {
+
+    const textarea =
+        $(id);
+
+    if (!textarea) {
+        return;
+    }
+
+
+    textarea.addEventListener(
+        "focus",
+        () => {
+
+            if (
+                textarea.value === ""
+            ) {
+
+                textarea.value =
+                    "■ ";
+
+            }
+
+        }
     );
 
-    specialPanel.classList.add(
-        "hidden"
+
+    textarea.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key !== "Enter"
+            ) {
+
+                return;
+
+            }
+
+
+            const start =
+                textarea.selectionStart;
+
+            const end =
+                textarea.selectionEnd;
+
+
+            const before =
+                textarea.value.slice(
+                    0,
+                    start
+                );
+
+            const after =
+                textarea.value.slice(
+                    end
+                );
+
+
+            textarea.value =
+                before +
+                "\n■ " +
+                after;
+
+
+            event.preventDefault();
+
+
+            const position =
+                before.length + 3;
+
+
+            textarea.selectionStart =
+                position;
+
+            textarea.selectionEnd =
+                position;
+
+        }
     );
 
-    normalCardPanel.classList.remove(
-        "hidden"
-    );
+}
 
-    normalCardFields.classList.remove(
-        "hidden"
-    );
 
-    normalAbilityField.classList.remove(
-        "hidden"
-    );
+// =========================
+// / 挿入
+// =========================
 
-    if (isTwinpact) {
+function insertSlash(
+    id
+) {
 
-        twinpactPanel.classList.remove(
+    const input =
+        $(id);
+
+    if (!input) {
+        return;
+    }
+
+
+    const start =
+        input.selectionStart;
+
+    const end =
+        input.selectionEnd;
+
+
+    input.value =
+        input.value.slice(
+            0,
+            start
+        ) +
+        "/" +
+        input.value.slice(
+            end
+        );
+
+
+    input.focus();
+
+
+    input.selectionStart =
+        start + 1;
+
+    input.selectionEnd =
+        start + 1;
+
+}
+
+
+// =========================
+// 検索文明
+// =========================
+
+let searchCivilizationMode = null;
+// null / "single" / "multi"
+
+let searchExactMatch = false;
+
+
+function setupSearchCivilizationButtons() {
+
+    const container =
+        $("searchCivilizationButtons");
+
+    if (!container) {
+        return;
+    }
+
+
+    container
+        .querySelectorAll(
+            ".search-civilization-button"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        button.classList.toggle(
+                            "selected"
+                        );
+
+                        renderCardList();
+
+                    }
+                );
+
+            }
+        );
+
+}
+
+
+function setSearchCivilizationMode(
+    mode
+) {
+
+    searchCivilizationMode =
+        mode;
+
+
+    if (
+        mode !== "multi"
+    ) {
+
+        searchExactMatch =
+            false;
+
+    }
+
+
+    updateSearchCivilizationUI();
+
+    renderCardList();
+
+}
+
+
+function updateSearchCivilizationUI() {
+
+    const buttons =
+        $("searchCivilizationButtons");
+
+    const exactButton =
+        $("searchExactMatchButton");
+
+    const singleButton =
+        $("searchSingleColorButton");
+
+    const multiButton =
+        $("searchMultiColorButton");
+
+
+    if (!buttons) {
+        return;
+    }
+
+
+    singleButton
+        ?.classList.toggle(
+            "selected",
+            searchCivilizationMode ===
+                "single"
+        );
+
+
+    multiButton
+        ?.classList.toggle(
+            "selected",
+            searchCivilizationMode ===
+                "multi"
+        );
+
+
+    if (
+        searchCivilizationMode ===
+        null
+    ) {
+
+        buttons.classList.add(
             "hidden"
         );
+
+        exactButton
+            ?.classList.add(
+                "hidden"
+            );
+
+        return;
+
+    }
+
+
+    buttons.classList.remove(
+        "hidden"
+    );
+
+
+    if (
+        searchCivilizationMode ===
+        "multi"
+    ) {
+
+        exactButton
+            ?.classList.remove(
+                "hidden"
+            );
+
+        exactButton
+            ?.classList.toggle(
+                "selected",
+                searchExactMatch
+            );
 
     } else {
 
-        twinpactPanel.classList.add(
-            "hidden"
-        );
-    }
-}
+        exactButton
+            ?.classList.add(
+                "hidden"
+            );
 
-function updateTwinpactUI() {
-
-    twinpactButton.classList.toggle(
-        "selected",
-        isTwinpact
-    );
-
-    twinpactButton.textContent =
-        isTwinpact
-            ? "ツインパクト解除"
-            : "ツインパクト";
-
-    if (isSpecial) {
-
-        twinpactPanel.classList.add(
-            "hidden"
-        );
-
-        return;
     }
 
-    twinpactPanel.classList.toggle(
-        "hidden",
-        !isTwinpact
-    );
 }
 
 
 // =========================
-// モードボタン
+// 文明検索判定
 // =========================
 
-twinpactButton.addEventListener(
-    "click",
-    () => {
-
-        if (isTwinpact) {
-
-            isTwinpact = false;
-
-        } else {
-
-            isTwinpact = true;
-            isSpecial = false;
-            specialMode = null;
-        }
-
-        updateSpecialModeUI();
-        updateTwinpactUI();
-    }
-);
-
-specialModeButton.addEventListener(
-    "click",
-    () => {
-
-        if (isSpecial) {
-
-            isSpecial = false;
-            specialMode = null;
-
-        } else {
-
-            isSpecial = true;
-            isTwinpact = false;
-            specialMode = "double";
-
-            renderSpecialFaces();
-        }
-
-        updateSpecialModeUI();
-        updateTwinpactUI();
-    }
-);
-
-doubleSideButton.addEventListener(
-    "click",
-    () => {
-
-        if (!isSpecial) {
-            return;
-        }
-
-        specialMode = "double";
-        renderSpecialFaces();
-
-        updateSpecialModeUI();
-    }
-);
-
-threeDButton.addEventListener(
-    "click",
-    () => {
-
-        if (!isSpecial) {
-            return;
-        }
-
-        specialMode = "3d";
-        renderSpecialFaces();
-
-        updateSpecialModeUI();
-    }
-);
-
-
-// =========================
-// リセット
-// =========================
-
-function resetForm() {
-
-    editingCardId = null;
-
-    isTwinpact = false;
-    isSpecial = false;
-    specialMode = null;
-
-    cardName.value = "";
-    reading.value = "";
-    cardType.value = "";
-    cost.value = "";
-    power.value = "";
-    race.value = "";
-    ability.value = "";
-
-    setSelectedCivilizations(
-        civilizationButtons,
-        []
-    );
-
-    bottomCardType.value = "呪文";
-    bottomCardName.value = "";
-    bottomReading.value = "";
-    bottomCost.value = "";
-    bottomRace.value = "";
-    bottomAbility.value = "";
-
-    setSelectedCivilizations(
-        bottomCivilizationButtons,
-        []
-    );
-
-    specialFaceContainer.innerHTML =
-        "";
-
-    saveButton.textContent =
-        "保存";
-
-    updateSpecialModeUI();
-    updateTwinpactUI();
-}
-
-resetButton.addEventListener(
-    "click",
-    resetForm
-);
-
-
-// =========================
-// 数値取得
-// =========================
-
-function parseNumber(value) {
+function matchesCivilizationFilter(
+    card
+) {
 
     if (
+        searchCivilizationMode ===
+        null
+    ) {
+
+        return true;
+
+    }
+
+
+    const selected =
+        [
+            ...(
+                $("searchCivilizationButtons")
+                    ?.querySelectorAll(
+                        ".search-civilization-button.selected"
+                    ) ||
+                []
+            )
+        ]
+            .map(
+                button =>
+                    button.dataset
+                        .civilization
+            )
+            .filter(Boolean);
+
+
+    const cardCivilizations =
+        getCardCivilizations(
+            card
+        );
+
+
+    const coloredCardCivilizations =
+        cardCivilizations.filter(
+            civ =>
+                civ !== "無色"
+        );
+
+
+    // -------------------------
+    // 単色
+    // -------------------------
+
+    if (
+        searchCivilizationMode ===
+        "single"
+    ) {
+
+        if (
+            coloredCardCivilizations.length >=
+            2
+        ) {
+
+            return false;
+
+        }
+
+
+        if (
+            selected.length === 0
+        ) {
+
+            return true;
+
+        }
+
+
+        return selected.some(
+            civ =>
+                cardCivilizations.includes(
+                    civ
+                )
+        );
+
+    }
+
+
+    // -------------------------
+    // 多色
+    // -------------------------
+
+    if (
+        searchCivilizationMode ===
+        "multi"
+    ) {
+
+        if (
+            coloredCardCivilizations.length <
+            2
+        ) {
+
+            return false;
+
+        }
+
+
+        if (
+            selected.length === 0
+        ) {
+
+            return true;
+
+        }
+
+
+        // 完全一致ON
+
+        if (
+            searchExactMatch
+        ) {
+
+            const cardSet =
+                new Set(
+                    coloredCardCivilizations
+                );
+
+
+            const selectedSet =
+                new Set(
+                    selected.filter(
+                        civ =>
+                            civ !==
+                            "無色"
+                    )
+                );
+
+
+            if (
+                cardSet.size !==
+                selectedSet.size
+            ) {
+
+                return false;
+
+            }
+
+
+            return [
+                ...selectedSet
+            ].every(
+                civ =>
+                    cardSet.has(civ)
+            );
+
+        }
+
+
+        // 完全一致OFF
+
+        return selected.some(
+            civ =>
+                cardCivilizations.includes(
+                    civ
+                )
+        );
+
+    }
+
+
+    return true;
+
+}
+
+
+// =========================
+// キーワード検索
+// =========================
+
+function matchesKeywordFilter(
+    card
+) {
+
+    const keyword =
+        $("searchKeyword")
+            ?.value
+            .trim()
+            .toLowerCase();
+
+
+    if (!keyword) {
+        return true;
+    }
+
+
+    const values = [];
+
+
+    values.push(
+        card.name ||
+        ""
+    );
+
+    values.push(
+        card.reading ||
+        ""
+    );
+
+    values.push(
+        card.race ||
+        ""
+    );
+
+    values.push(
+        card.cardType ||
+        ""
+    );
+
+    values.push(
+        card.ability ||
+        ""
+    );
+
+
+    if (
+        card.isTwinpact
+    ) {
+
+        values.push(
+            card.bottomName ||
+            ""
+        );
+
+        values.push(
+            card.bottomReading ||
+            ""
+        );
+
+        values.push(
+            card.bottomRace ||
+            ""
+        );
+
+        values.push(
+            card.bottomCardType ||
+            ""
+        );
+
+        values.push(
+            card.bottomAbility ||
+            ""
+        );
+
+    }
+
+
+    if (
+        card.isSpecial &&
+        Array.isArray(
+            card.faces
+        )
+    ) {
+
+        card.faces.forEach(
+            face => {
+
+                values.push(
+                    face.name ||
+                    ""
+                );
+
+                values.push(
+                    face.reading ||
+                    ""
+                );
+
+                values.push(
+                    face.race ||
+                    ""
+                );
+
+                values.push(
+                    face.cardType ||
+                    ""
+                );
+
+                values.push(
+                    face.ability ||
+                    ""
+                );
+
+            }
+        );
+
+    }
+
+
+    return values.some(
+        value =>
+            String(value)
+                .toLowerCase()
+                .includes(
+                    keyword
+                )
+    );
+
+}
+
+
+// =========================
+// カードタイプ検索
+// =========================
+
+function matchesCardTypeFilter(
+    card
+) {
+
+    const keyword =
+        $("searchCardType")
+            ?.value
+            .trim()
+            .toLowerCase();
+
+
+    if (!keyword) {
+        return true;
+    }
+
+
+    // -------------------------
+    // ツインパクト
+    // -------------------------
+
+    if (
+        keyword ===
+        "ツインパクト"
+    ) {
+
+        return (
+            card.isTwinpact ===
+            true
+        );
+
+    }
+
+
+    // -------------------------
+    // 特殊カード
+    // -------------------------
+
+    if (
+        card.isSpecial
+    ) {
+
+        if (
+            !Array.isArray(
+                card.faces
+            )
+        ) {
+
+            return false;
+
+        }
+
+
+        return card.faces.some(
+            face =>
+                String(
+                    face.cardType ||
+                    ""
+                )
+                    .toLowerCase()
+                    .includes(
+                        keyword
+                    )
+        );
+
+    }
+
+
+    // -------------------------
+    // 通常カード
+    // -------------------------
+
+    if (
+        card.isTwinpact
+    ) {
+
+        return false;
+
+    }
+
+
+    return String(
+        card.cardType ||
+        ""
+    )
+        .toLowerCase()
+        .includes(
+            keyword
+        );
+
+}
+
+
+// =========================
+// コスト検索
+// =========================
+
+function parseNumericValue(
+    value
+) {
+
+    if (
+        value === "" ||
         value === null ||
         value === undefined
     ) {
+
         return null;
+
     }
 
+
+    const text =
+        String(value)
+            .trim();
+
+
     const match =
-        String(value).match(
-            /-?\d+/
+        text.match(
+            /-?\d+(?:\.\d+)?/
         );
+
 
     if (!match) {
         return null;
     }
 
+
     return Number(
         match[0]
     );
-}
 
-function parsePower(value) {
-
-    return parseNumber(value);
 }
 
 
-// =========================
-// 特殊カード検索対象
-// =========================
+function matchesCostFilter(
+    card
+) {
 
-function getSearchableFaces(card) {
+    const min =
+        parseNumericValue(
+            $("searchCostMin")?.value
+        );
+
+
+    const max =
+        parseNumericValue(
+            $("searchCostMax")?.value
+        );
+
+
+    if (
+        min === null &&
+        max === null
+    ) {
+
+        return true;
+
+    }
+
+
+    const costs = [];
+
+
+    const mainCost =
+        parseNumericValue(
+            card.cost
+        );
+
+
+    if (
+        mainCost !== null
+    ) {
+
+        costs.push(
+            mainCost
+        );
+
+    }
+
+
+    if (
+        card.isTwinpact
+    ) {
+
+        const bottomCost =
+            parseNumericValue(
+                card.bottomCost
+            );
+
+
+        if (
+            bottomCost !== null
+        ) {
+
+            costs.push(
+                bottomCost
+            );
+
+        }
+
+    }
+
 
     if (
         card.isSpecial &&
-        Array.isArray(card.faces)
+        Array.isArray(
+            card.faces
+        )
     ) {
-        return card.faces;
+
+        card.faces.forEach(
+            face => {
+
+                const value =
+                    parseNumericValue(
+                        face.cost
+                    );
+
+
+                if (
+                    value !== null
+                ) {
+
+                    costs.push(
+                        value
+                    );
+
+                }
+
+            }
+        );
+
     }
 
-    return [card];
+
+    if (
+        costs.length === 0
+    ) {
+
+        return false;
+
+    }
+
+
+    return costs.some(
+        cost => {
+
+            if (
+                min !== null &&
+                cost < min
+            ) {
+
+                return false;
+
+            }
+
+
+            if (
+                max !== null &&
+                cost > max
+            ) {
+
+                return false;
+
+            }
+
+
+            return true;
+
+        }
+    );
+
+}
+
+
+// =========================
+// パワー検索
+// =========================
+
+function powerToNumber(
+    value
+) {
+
+    if (
+        value === "" ||
+        value === null ||
+        value === undefined
+    ) {
+
+        return null;
+
+    }
+
+
+    const text =
+        String(value)
+            .trim()
+            .replace(
+                /,/g,
+                ""
+            );
+
+
+    if (
+        text === "∞"
+    ) {
+
+        return Infinity;
+
+    }
+
+
+    const match =
+        text.match(
+            /-?\d+/
+        );
+
+
+    if (!match) {
+        return null;
+    }
+
+
+    return Number(
+        match[0]
+    );
+
+}
+
+
+function matchesPowerFilter(
+    card
+) {
+
+    const min =
+        powerToNumber(
+            $("searchPowerMin")?.value
+        );
+
+
+    const max =
+        powerToNumber(
+            $("searchPowerMax")?.value
+        );
+
+
+    if (
+        min === null &&
+        max === null
+    ) {
+
+        return true;
+
+    }
+
+
+    const powers = [];
+
+
+    const mainPower =
+        powerToNumber(
+            card.power
+        );
+
+
+    if (
+        mainPower !== null
+    ) {
+
+        powers.push(
+            mainPower
+        );
+
+    }
+
+
+    if (
+        card.isSpecial &&
+        Array.isArray(
+            card.faces
+        )
+    ) {
+
+        card.faces.forEach(
+            face => {
+
+                const power =
+                    powerToNumber(
+                        face.power
+                    );
+
+
+                if (
+                    power !== null
+                ) {
+
+                    powers.push(
+                        power
+                    );
+
+                }
+
+            }
+        );
+
+    }
+
+
+    if (
+        powers.length === 0
+    ) {
+
+        return false;
+
+    }
+
+
+    return powers.some(
+        power => {
+
+            if (
+                min !== null &&
+                power < min
+            ) {
+
+                return false;
+
+            }
+
+
+            if (
+                max !== null &&
+                power > max
+            ) {
+
+                return false;
+
+            }
+
+
+            return true;
+
+        }
+    );
+
+}
+
+
+// =========================
+// お気に入り検索
+// =========================
+
+function matchesFavoriteFilter(
+    card
+) {
+
+    if (
+        !$("favoritesOnly")?.checked
+    ) {
+
+        return true;
+
+    }
+
+
+    return (
+        card.favorite ===
+        true
+    );
+
 }
 
 
@@ -1376,296 +3005,65 @@ function getSearchableFaces(card) {
 
 function renderCardList() {
 
-    cardList.innerHTML = "";
+    const container =
+        $("cardList");
 
-    const keyword =
-        searchKeyword.value
-            .trim()
-            .toLowerCase();
+    if (!container) {
+        return;
+    }
 
-    const costMin =
-        parseNumber(
-            searchCostMin.value
-        );
 
-    const costMax =
-        parseNumber(
-            searchCostMax.value
-        );
-
-    const powerMin =
-        parsePower(
-            searchPowerMin.value
-        );
-
-    const powerMax =
-        parsePower(
-            searchPowerMax.value
-        );
-
-    const typeKeyword =
-        searchCardType.value
-            .trim()
-            .toLowerCase();
+    container.innerHTML = "";
 
 
     const filteredCards =
-        cards.filter(card => {
+        cards.filter(
+            card => {
 
-            const searchableFaces =
-                getSearchableFaces(card);
+                return (
 
+                    matchesKeywordFilter(
+                        card
+                    ) &&
 
-            // =====================
-            // キーワード
-            // =====================
+                    matchesCostFilter(
+                        card
+                    ) &&
 
-            if (keyword) {
+                    matchesPowerFilter(
+                        card
+                    ) &&
 
-                const texts = [];
+                    matchesCardTypeFilter(
+                        card
+                    ) &&
 
-                searchableFaces.forEach(
-                    face => {
+                    matchesCivilizationFilter(
+                        card
+                    ) &&
 
-                        texts.push(
-                            face.name,
-                            face.reading,
-                            face.civilization,
-                            face.race,
-                            face.cost,
-                            face.power,
-                            face.cardType,
-                            face.ability
-                        );
-                    }
-                );
-
-                texts.push(
-                    card.name,
-                    card.reading,
-                    card.civilization,
-                    card.race,
-                    card.cost,
-                    card.power,
-                    card.cardType,
-                    card.ability
-                );
-
-                if (
-                    card.bottomCard
-                ) {
-
-                    texts.push(
-                        card.bottomCard.name,
-                        card.bottomCard.reading,
-                        card.bottomCard.civilization,
-                        card.bottomCard.race,
-                        card.bottomCard.cost,
-                        card.bottomCard.cardType,
-                        card.bottomCard.ability
-                    );
-                }
-
-                const text =
-                    texts
-                        .filter(Boolean)
-                        .join(" ")
-                        .toLowerCase();
-
-                if (
-                    !text.includes(
-                        keyword
+                    matchesFavoriteFilter(
+                        card
                     )
-                ) {
-                    return false;
-                }
+
+                );
+
             }
-
-
-            // =====================
-            // コスト
-            // =====================
-
-            if (
-                costMin !== null ||
-                costMax !== null
-            ) {
-
-                const costMatch =
-                    searchableFaces.some(
-                        face => {
-
-                            const faceCost =
-                                parseNumber(
-                                    face.cost
-                                );
-
-                            if (
-                                faceCost === null
-                            ) {
-                                return false;
-                            }
-
-                            if (
-                                costMin !== null &&
-                                faceCost < costMin
-                            ) {
-                                return false;
-                            }
-
-                            if (
-                                costMax !== null &&
-                                faceCost > costMax
-                            ) {
-                                return false;
-                            }
-
-                            return true;
-                        }
-                    );
-
-                if (!costMatch) {
-                    return false;
-                }
-            }
-
-
-            // =====================
-            // パワー
-            // =====================
-
-            if (
-                powerMin !== null ||
-                powerMax !== null
-            ) {
-
-                const powerMatch =
-                    searchableFaces.some(
-                        face => {
-
-                            const facePower =
-                                parsePower(
-                                    face.power
-                                );
-
-                            if (
-                                facePower === null
-                            ) {
-                                return false;
-                            }
-
-                            if (
-                                powerMin !== null &&
-                                facePower < powerMin
-                            ) {
-                                return false;
-                            }
-
-                            if (
-                                powerMax !== null &&
-                                facePower > powerMax
-                            ) {
-                                return false;
-                            }
-
-                            return true;
-                        }
-                    );
-
-                if (!powerMatch) {
-                    return false;
-                }
-            }
-
-
-            // =====================
-            // カードタイプ
-            // =====================
-
-            if (typeKeyword) {
-
-                if (
-                    typeKeyword ===
-                    "ツインパクト"
-                ) {
-
-                    if (!card.isTwinpact) {
-                        return false;
-                    }
-
-                } else if (
-                    typeKeyword ===
-                    "ドラグハート・サイキック"
-                ) {
-
-                    if (!card.isSpecial) {
-                        return false;
-                    }
-
-                } else {
-
-                    if (
-                        card.isTwinpact ||
-                        card.isSpecial
-                    ) {
-                        return false;
-                    }
-
-                    const type =
-                        String(
-                            card.cardType || ""
-                        ).toLowerCase();
-
-                    if (
-                        !type.includes(
-                            typeKeyword
-                        )
-                    ) {
-
-                        return false;
-                    }
-                }
-            }
-
-
-            // =====================
-            // 文明
-            // =====================
-
-            if (
-                !matchesCivilizationFilter(
-                    card
-                )
-            ) {
-                return false;
-            }
-
-
-            // =====================
-            // お気に入り
-            // =====================
-
-            if (
-                favoritesOnly.checked &&
-                !card.favorite
-            ) {
-                return false;
-            }
-
-            return true;
-        });
+        );
 
 
     if (
         filteredCards.length === 0
     ) {
 
-        cardList.innerHTML =
-            `<p class="empty-message">
-                カードが見つかりません。
-            </p>`;
+        container.innerHTML = `
+            <p class="empty-message">
+                カードがありません。
+            </p>
+        `;
 
         return;
+
     }
 
 
@@ -1677,8 +3075,135 @@ function renderCardList() {
                     "div"
                 );
 
+
             item.className =
                 "card-list-item";
+
+
+            // -------------------------
+            // テキスト
+            // -------------------------
+
+            const text =
+                document.createElement(
+                    "div"
+                );
+
+
+            text.className =
+                "card-list-text";
+
+
+            const name =
+                document.createElement(
+                    "div"
+                );
+
+
+            name.className =
+                "card-list-name";
+
+
+            name.textContent =
+                card.name ||
+                "名前未設定";
+
+
+            const type =
+                document.createElement(
+                    "div"
+                );
+
+
+            type.className =
+                "card-list-type";
+
+
+            if (
+                card.isTwinpact
+            ) {
+
+                type.textContent =
+                    "ツインパクト";
+
+            } else if (
+                card.isSpecial
+            ) {
+
+                type.textContent =
+                    card.specialType ===
+                        "psychic"
+                        ? "サイキック"
+                        : "ドラグハート";
+
+            } else {
+
+                type.textContent =
+                    card.cardType ||
+                    "カードタイプ未設定";
+
+            }
+
+
+            text.appendChild(
+                name
+            );
+
+            text.appendChild(
+                type
+            );
+
+
+            // -------------------------
+            // お気に入り
+            // -------------------------
+
+            const favorite =
+                document.createElement(
+                    "button"
+                );
+
+
+            favorite.type =
+                "button";
+
+
+            favorite.className =
+                "favorite-button";
+
+
+            favorite.textContent =
+                card.favorite
+                    ? "★"
+                    : "☆";
+
+
+            favorite.addEventListener(
+                "click",
+                event => {
+
+                    event.stopPropagation();
+
+                    toggleFavorite(
+                        card.id
+                    );
+
+                }
+            );
+
+
+            // -------------------------
+            // 一覧アイテム
+            // -------------------------
+
+            item.appendChild(
+                text
+            );
+
+            item.appendChild(
+                favorite
+            );
+
 
             item.addEventListener(
                 "click",
@@ -1687,155 +3212,1495 @@ function renderCardList() {
                     showCardDetail(
                         card.id
                     );
+
                 }
             );
 
 
-            const nameArea =
-                document.createElement(
-                    "div"
-                );
-
-            nameArea.className =
-                "card-list-name-area";
-
-
-            const name =
-                document.createElement(
-                    "div"
-                );
-
-            name.className =
-                "card-list-name";
-
-            name.textContent =
-                card.name ||
-                (
-                    card.isSpecial &&
-                    card.faces &&
-                    card.faces[0]
-                        ? card.faces[0].name
-                        : "名前なし"
-                ) ||
-                "名前なし";
-
-
-            const type =
-                document.createElement(
-                    "div"
-                );
-
-            type.className =
-                "card-list-type";
-
-            if (card.isTwinpact) {
-
-                type.textContent =
-                    "ツインパクト";
-
-            } else if (card.isSpecial) {
-
-                type.textContent =
-                    "ドラグハート・サイキック";
-
-            } else {
-
-                type.textContent =
-                    card.cardType ||
-                    "カードタイプ未設定";
-            }
-
-
-            nameArea.appendChild(
-                name
-            );
-
-            nameArea.appendChild(
-                type
-            );
-
-
-            const favoriteButton =
-                document.createElement(
-                    "button"
-                );
-
-            favoriteButton.type =
-                "button";
-
-            favoriteButton.className =
-                "favorite-button";
-
-            favoriteButton.textContent =
-                card.favorite
-                    ? "★"
-                    : "☆";
-
-            favoriteButton.title =
-                card.favorite
-                    ? "お気に入りを解除"
-                    : "お気に入りに追加";
-
-            favoriteButton.addEventListener(
-                "click",
-                event => {
-
-                    event.stopPropagation();
-
-                    card.favorite =
-                        !card.favorite;
-
-                    saveCards();
-                    renderCardList();
-                }
-            );
-
-
-            item.appendChild(
-                nameArea
-            );
-
-            item.appendChild(
-                favoriteButton
-            );
-
-            cardList.appendChild(
+            container.appendChild(
                 item
             );
+
         }
     );
+
 }
 
 
 // =========================
-// 検索入力イベント
+// お気に入り
 // =========================
 
-[
-    searchKeyword,
-    searchCostMin,
-    searchCostMax,
-    searchPowerMin,
-    searchPowerMax,
-    searchCardType
-].forEach(input => {
+function toggleFavorite(
+    id
+) {
 
-    if (!input) {
+    const card =
+        cards.find(
+            card =>
+                card.id ===
+                id
+        );
+
+    if (!card) {
         return;
     }
 
-    input.addEventListener(
-        "input",
-        renderCardList
-    );
-});
 
-if (favoritesOnly) {
+    card.favorite =
+        !card.favorite;
 
-    favoritesOnly.addEventListener(
-        "change",
-        renderCardList
+
+    saveCards();
+
+    renderCardList();
+
+}
+
+
+// =========================
+// ID
+// =========================
+
+function createId() {
+
+    return (
+        Date.now().toString(36) +
+        "-" +
+        Math.random()
+            .toString(36)
+            .substring(2, 10)
     );
+
+}
+
+
+// =========================
+// 編集
+// =========================
+
+function editCard(
+    id
+) {
+
+    const card =
+        cards.find(
+            card =>
+                card.id ===
+                id
+        );
+
+
+    if (!card) {
+        return;
+    }
+
+
+    editingCardId =
+        id;
+
+
+    // =========================
+    // 特殊カード
+    // =========================
+
+    if (
+        card.isSpecial
+    ) {
+
+        isTwinpact = false;
+
+        isSpecial = true;
+
+
+        specialType =
+            card.specialType ||
+            "dragheart";
+
+
+        specialMode =
+            card.specialMode ||
+            (
+                Array.isArray(
+                    card.faces
+                ) &&
+                card.faces.length === 3
+                    ? "3d"
+                    : "double"
+            );
+
+
+        if (
+            specialType ===
+            "dragheart"
+        ) {
+
+            dragHeartMode =
+                specialMode;
+
+        }
+
+
+        if (
+            specialType ===
+            "psychic"
+        ) {
+
+            psychicMode =
+                specialMode;
+
+        }
+
+
+        temporarySpecialFaces =
+            Array.isArray(
+                card.faces
+            )
+                ? JSON.parse(
+                    JSON.stringify(
+                        card.faces
+                    )
+                )
+                : [];
+
+
+        const container =
+            $("multiFaceInputs");
+
+
+        if (container) {
+
+            container.innerHTML =
+                "";
+
+        }
+
+
+        updateSpecialModeUI();
+
+        updateTwinpactUI();
+
+
+        $("saveButton")
+            .textContent =
+            "更新";
+
+
+        showCreateSection();
+
+        return;
+
+    }
+
+
+    // =========================
+    // 通常 / ツインパクト
+    // =========================
+
+    isSpecial = false;
+
+    specialType = null;
+    specialMode = null;
+
+
+    isTwinpact =
+        card.isTwinpact ===
+        true;
+
+
+    $("cardName").value =
+        card.name ||
+        "";
+
+
+    $("reading").value =
+        card.reading ||
+        "";
+
+
+    $("cost").value =
+        card.cost ??
+        "";
+
+
+    $("power").value =
+        card.power ??
+        "";
+
+
+    $("race").value =
+        card.race ||
+        "";
+
+
+    $("cardType").value =
+        card.cardType ||
+        "";
+
+
+    $("ability").value =
+        card.ability ||
+        "";
+
+
+    setCivilizationButtons(
+        "civilizationButtons",
+        card.civilizations ||
+        splitCivilizations(
+            card.civilization ||
+            ""
+        )
+    );
+
+
+    // -------------------------
+    // ツインパクト下面
+    // -------------------------
+
+    $("bottomCardName").value =
+        card.bottomName ||
+        "";
+
+
+    $("bottomReading").value =
+        card.bottomReading ||
+        "";
+
+
+    $("bottomCost").value =
+        card.bottomCost ??
+        "";
+
+
+    $("bottomRace").value =
+        card.bottomRace ||
+        "";
+
+
+    $("bottomCardType").value =
+        card.bottomCardType ||
+        "呪文";
+
+
+    $("bottomAbility").value =
+        card.bottomAbility ||
+        "";
+
+
+    setCivilizationButtons(
+        "bottomCivilizationButtons",
+        card.bottomCivilizations ||
+        splitCivilizations(
+            card.bottomCivilization ||
+            ""
+        )
+    );
+
+
+    updateSpecialModeUI();
+    updateTwinpactUI();
+
+
+    $("saveButton")
+        .textContent =
+        "更新";
+
+
+    showCreateSection();
+
+}
+
+
+// =========================
+// 既存お気に入り
+// =========================
+
+function getExistingFavorite() {
+
+    if (!editingCardId) {
+        return false;
+    }
+
+
+    const oldCard =
+        cards.find(
+            card =>
+                card.id ===
+                editingCardId
+        );
+
+
+    return (
+        oldCard?.favorite ===
+        true
+    );
+
+}
+
+
+// =========================
+// 特殊文明合算
+// =========================
+
+function getCombinedSpecialCivilizations(
+    faces
+) {
+
+    const result = [];
+
+
+    faces.forEach(
+        face => {
+
+            if (
+                Array.isArray(
+                    face.civilizations
+                )
+            ) {
+
+                result.push(
+                    ...face.civilizations
+                );
+
+            } else if (
+                face.civilization
+            ) {
+
+                result.push(
+                    ...splitCivilizations(
+                        face.civilization
+                    )
+                );
+
+            }
+
+        }
+    );
+
+
+    return [
+        ...new Set(
+            result.filter(Boolean)
+        )
+    ];
+
+}
+
+
+// =========================
+// 保存
+// =========================
+
+function saveCard() {
+
+    let cardData;
+
+
+    // =========================
+    // 特殊カード
+    // =========================
+
+    if (isSpecial) {
+
+        saveCurrentSpecialFaces();
+
+
+        const faces =
+            getSpecialFaceData();
+
+
+        if (
+            faces.length === 0
+        ) {
+
+            alert(
+                "面を入力してください。"
+            );
+
+            return;
+
+        }
+
+
+        const civilizations =
+            getCombinedSpecialCivilizations(
+                faces
+            );
+
+
+        const first =
+            faces[0];
+
+
+        cardData = {
+
+            id:
+                editingCardId ||
+                createId(),
+
+            name:
+                first.name,
+
+            reading:
+                first.reading,
+
+            civilizations,
+
+            civilization:
+                civilizations.join(
+                    "・"
+                ),
+
+            cost:
+                first.cost,
+
+            power:
+                first.power,
+
+            race:
+                first.race,
+
+            cardType:
+                first.cardType,
+
+            ability:
+                first.ability,
+
+            isTwinpact:
+                false,
+
+            isSpecial:
+                true,
+
+            specialType:
+                specialType ||
+                "dragheart",
+
+            specialMode:
+                specialMode ||
+                "double",
+
+            faces,
+
+            favorite:
+                getExistingFavorite()
+
+        };
+
+    }
+
+
+    // =========================
+    // 通常 / ツインパクト
+    // =========================
+
+    else {
+
+        const civilizations =
+            getCivilizationArray(
+                "civilizationButtons"
+            );
+
+
+        const bottomCivilizations =
+            getCivilizationArray(
+                "bottomCivilizationButtons"
+            );
+
+
+        cardData = {
+
+            id:
+                editingCardId ||
+                createId(),
+
+            name:
+                $("cardName")
+                    ?.value
+                    .trim() ||
+                "",
+
+            reading:
+                $("reading")
+                    ?.value
+                    .trim() ||
+                "",
+
+            civilizations,
+
+            civilization:
+                civilizations.join(
+                    "・"
+                ),
+
+            cost:
+                $("cost")
+                    ?.value
+                    .trim() ||
+                "",
+
+            power:
+                $("power")
+                    ?.value
+                    .trim() ||
+                "",
+
+            race:
+                $("race")
+                    ?.value
+                    .trim() ||
+                "",
+
+            cardType:
+                $("cardType")
+                    ?.value
+                    .trim() ||
+                "",
+
+            ability:
+                $("ability")
+                    ?.value ||
+                "",
+
+            isTwinpact:
+                isTwinpact,
+
+            isSpecial:
+                false,
+
+            specialType:
+                null,
+
+            specialMode:
+                null,
+
+            bottomName:
+                $("bottomCardName")
+                    ?.value
+                    .trim() ||
+                "",
+
+            bottomReading:
+                $("bottomReading")
+                    ?.value
+                    .trim() ||
+                "",
+
+            bottomCivilizations,
+
+            bottomCivilization:
+                bottomCivilizations.join(
+                    "・"
+                ),
+
+            bottomCost:
+                $("bottomCost")
+                    ?.value
+                    .trim() ||
+                "",
+
+            bottomRace:
+                $("bottomRace")
+                    ?.value
+                    .trim() ||
+                "",
+
+            bottomCardType:
+                $("bottomCardType")
+                    ?.value
+                    .trim() ||
+                "呪文",
+
+            bottomAbility:
+                $("bottomAbility")
+                    ?.value ||
+                "",
+
+            favorite:
+                getExistingFavorite()
+
+        };
+
+    }
+
+
+    // =========================
+    // 保存 / 更新
+    // =========================
+
+    if (
+        editingCardId
+    ) {
+
+        const index =
+            cards.findIndex(
+                card =>
+                    card.id ===
+                    editingCardId
+            );
+
+
+        if (
+            index !== -1
+        ) {
+
+            cards[index] =
+                cardData;
+
+        }
+
+    } else {
+
+        cards.push(
+            cardData
+        );
+
+    }
+
+
+    saveCards();
+
+
+    alert(
+        editingCardId
+            ? "カードを更新しました。"
+            : "カードを保存しました。"
+    );
+
+
+    resetForm();
+
+    renderCardList();
+
+}
+
+
+// =========================
+// リセット
+// =========================
+
+function resetForm() {
+
+    editingCardId = null;
+
+    isTwinpact = false;
+
+    isSpecial = false;
+
+    specialType = null;
+
+    specialMode = null;
+
+    temporarySpecialFaces = [];
+
+
+    const ids = [
+
+        "cardName",
+        "reading",
+        "cost",
+        "power",
+        "race",
+        "cardType",
+        "ability",
+
+        "bottomCardName",
+        "bottomReading",
+        "bottomCost",
+        "bottomRace",
+        "bottomCardType",
+        "bottomAbility"
+
+    ];
+
+
+    ids.forEach(
+        id => {
+
+            const element =
+                $(id);
+
+            if (!element) {
+                return;
+            }
+
+
+            element.value = "";
+
+        }
+    );
+
+
+    $("bottomCardType") &&
+        (
+            $("bottomCardType").value =
+                "呪文"
+        );
+
+
+    setCivilizationButtons(
+        "civilizationButtons",
+        []
+    );
+
+
+    setCivilizationButtons(
+        "bottomCivilizationButtons",
+        []
+    );
+
+
+    const specialContainer =
+        $("multiFaceInputs");
+
+
+    if (specialContainer) {
+
+        specialContainer.innerHTML =
+            "";
+
+    }
+
+
+    $("saveButton") &&
+        (
+            $("saveButton").textContent =
+                "保存"
+        );
+
+
+    updateSpecialModeUI();
+
+    updateTwinpactUI();
+
+}
+
+
+// =========================
+// 削除
+// =========================
+
+function deleteCard(
+    id
+) {
+
+    const card =
+        cards.find(
+            card =>
+                card.id ===
+                id
+        );
+
+
+    if (!card) {
+        return;
+    }
+
+
+    const confirmed =
+        confirm(
+            `「${card.name || "名前未設定"}」を削除しますか？`
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    cards =
+        cards.filter(
+            card =>
+                card.id !== id
+        );
+
+
+    saveCards();
+
+    showListSection();
+
+    renderCardList();
+
+}
+
+
+// =========================
+// 詳細表示
+// =========================
+
+function showCardDetail(
+    id
+) {
+
+    const card =
+        cards.find(
+            card =>
+                card.id ===
+                id
+        );
+
+
+    if (!card) {
+        return;
+    }
+
+
+    $("createSection")
+        ?.classList.add(
+            "hidden"
+        );
+
+    $("listSection")
+        ?.classList.add(
+            "hidden"
+        );
+
+    $("detailSection")
+        ?.classList.remove(
+            "hidden"
+        );
+
+
+    const container =
+        $("cardDetail");
+
+
+    if (!container) {
+        return;
+    }
+
+
+    container.innerHTML =
+        "";
+
+
+    const title =
+        document.createElement(
+            "h3"
+        );
+
+
+    title.textContent =
+        card.name ||
+        "名前未設定";
+
+
+    container.appendChild(
+        title
+    );
+
+
+    if (
+        card.isSpecial
+    ) {
+
+        renderSpecialDetail(
+            container,
+            card
+        );
+
+    } else {
+
+        renderNormalDetail(
+            container,
+            card
+        );
+
+    }
+
+
+    const actions =
+        document.createElement(
+            "div"
+        );
+
+
+    actions.className =
+        "detail-actions";
+
+
+    const editButton =
+        document.createElement(
+            "button"
+        );
+
+
+    editButton.type =
+        "button";
+
+    editButton.className =
+        "small-button";
+
+    editButton.textContent =
+        "編集";
+
+
+    editButton.addEventListener(
+        "click",
+        () => {
+
+            editCard(
+                card.id
+            );
+
+        }
+    );
+
+
+    const copyButton =
+        document.createElement(
+            "button"
+        );
+
+
+    copyButton.type =
+        "button";
+
+    copyButton.className =
+        "small-button";
+
+    copyButton.textContent =
+        "テンプレコピー";
+
+
+    copyButton.addEventListener(
+        "click",
+        () => {
+
+            copyTemplate(
+                card.id
+            );
+
+        }
+    );
+
+
+    const deleteButton =
+        document.createElement(
+            "button"
+        );
+
+
+    deleteButton.type =
+        "button";
+
+    deleteButton.className =
+        "small-button";
+
+    deleteButton.textContent =
+        "削除";
+
+
+    deleteButton.addEventListener(
+        "click",
+        () => {
+
+            deleteCard(
+                card.id
+            );
+
+        }
+    );
+
+
+    actions.appendChild(
+        editButton
+    );
+
+    actions.appendChild(
+        copyButton
+    );
+
+    actions.appendChild(
+        deleteButton
+    );
+
+
+    container.appendChild(
+        actions
+    );
+
+}
+
+
+// =========================
+// 通常詳細
+// =========================
+
+function renderNormalDetail(
+    container,
+    card
+) {
+
+    const data = {
+
+        "名前":
+            card.name,
+
+        "読み方":
+            card.reading,
+
+        "文明":
+            getCardCivilizations(
+                card
+            ).join("・"),
+
+        "種族":
+            card.race,
+
+        "コスト":
+            card.cost,
+
+        "パワー":
+            card.power,
+
+        "カードタイプ":
+            card.isTwinpact
+                ? "ツインパクト"
+                : card.cardType,
+
+        "能力":
+            card.ability
+
+    };
+
+
+    Object.entries(
+        data
+    ).forEach(
+        ([label, value]) => {
+
+            appendDetailRow(
+                container,
+                label,
+                value
+            );
+
+        }
+    );
+
+
+    // -------------------------
+    // ツインパクト下面
+    // -------------------------
+
+    if (
+        card.isTwinpact
+    ) {
+
+        const heading =
+            document.createElement(
+                "h4"
+            );
+
+
+        heading.textContent =
+            "ツインパクト下面";
+
+
+        container.appendChild(
+            heading
+        );
+
+
+        const bottomData = {
+
+            "名前":
+                card.bottomName,
+
+            "読み方":
+                card.bottomReading,
+
+            "文明":
+                (
+                    card.bottomCivilizations ||
+                    splitCivilizations(
+                        card.bottomCivilization ||
+                        ""
+                    )
+                ).join("・"),
+
+            "種族":
+                card.bottomRace,
+
+            "コスト":
+                card.bottomCost,
+
+            "カードタイプ":
+                card.bottomCardType,
+
+            "能力":
+                card.bottomAbility
+
+        };
+
+
+        Object.entries(
+            bottomData
+        ).forEach(
+            ([label, value]) => {
+
+                appendDetailRow(
+                    container,
+                    label,
+                    value
+                );
+
+            }
+        );
+
+    }
+
+}
+
+
+// =========================
+// 特殊詳細
+// =========================
+
+function renderSpecialDetail(
+    container,
+    card
+) {
+
+    const mode =
+        document.createElement(
+            "p"
+        );
+
+
+    mode.innerHTML =
+        `<strong>モード：</strong> ${
+            escapeHTML(
+                card.specialType ===
+                    "psychic"
+                    ? "サイキック"
+                    : "ドラグハート"
+            )
+        }`;
+
+
+    container.appendChild(
+        mode
+    );
+
+
+    if (
+        !Array.isArray(
+            card.faces
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    card.faces.forEach(
+        (face, index) => {
+
+            const heading =
+                document.createElement(
+                    "h4"
+                );
+
+
+            heading.textContent =
+                `第${index + 1}面`;
+
+
+            container.appendChild(
+                heading
+            );
+
+
+            const data = {
+
+                "名前":
+                    face.name,
+
+                "読み方":
+                    face.reading,
+
+                "文明":
+                    (
+                        face.civilizations ||
+                        splitCivilizations(
+                            face.civilization ||
+                            ""
+                        )
+                    ).join("・"),
+
+                "種族":
+                    face.race,
+
+                "コスト":
+                    face.cost,
+
+                "パワー":
+                    face.power,
+
+                "カードタイプ":
+                    face.cardType,
+
+                "能力":
+                    face.ability
+
+            };
+
+
+            Object.entries(
+                data
+            ).forEach(
+                ([label, value]) => {
+
+                    appendDetailRow(
+                        container,
+                        label,
+                        value
+                    );
+
+                }
+            );
+
+        }
+    );
+
+}
+
+
+// =========================
+// 詳細行
+// =========================
+
+function appendDetailRow(
+    container,
+    label,
+    value
+) {
+
+    const p =
+        document.createElement(
+            "p"
+        );
+
+
+    const strong =
+        document.createElement(
+            "strong"
+        );
+
+
+    strong.textContent =
+        `${label}：`;
+
+
+    p.appendChild(
+        strong
+    );
+
+
+    p.appendChild(
+        document.createTextNode(
+            String(
+                value ?? ""
+            )
+        )
+    );
+
+
+    container.appendChild(
+        p
+    );
+
+}
+
+
+// =========================
+// テンプレコピー
+// =========================
+
+async function copyTemplate(
+    id
+) {
+
+    const card =
+        cards.find(
+            card =>
+                card.id ===
+                id
+        );
+
+
+    if (!card) {
+        return;
+    }
+
+
+    let template = "";
+
+
+    // =========================
+    // ドラグハート / サイキック
+    // =========================
+
+    if (
+        card.isSpecial
+    ) {
+
+        const faces =
+            Array.isArray(
+                card.faces
+            )
+                ? card.faces
+                : [];
+
+
+        faces.forEach(
+            (face, index) => {
+
+                template +=
+                    `【第${index + 1}面】
+名前：
+読み方：
+文明：
+種族：
+コスト：
+パワー：
+カードタイプ：
+能力：`;
+
+
+                if (
+                    index <
+                    faces.length - 1
+                ) {
+
+                    template +=
+                        `
+
+--------------------
+`;
+
+                }
+
+            }
+        );
+
+    }
+
+
+    // =========================
+    // ツインパクト
+    // =========================
+
+    else if (
+        card.isTwinpact
+    ) {
+
+        template =
+            `【上面】
+名前：
+読み方：
+文明：
+種族：
+コスト：
+パワー：
+カードタイプ：
+能力：
+--------------------
+【下面】
+名前：
+読み方：
+文明：
+種族：
+コスト：
+カードタイプ：
+能力：`;
+
+    }
+
+
+    // =========================
+    // 通常
+    // =========================
+
+    else {
+
+        template =
+            `名前：
+読み方：
+文明：
+種族：
+コスト：
+パワー：
+カードタイプ：
+能力：`;
+
+    }
+
+
+    try {
+
+        await navigator.clipboard.writeText(
+            template
+        );
+
+
+        alert(
+            "テンプレートをコピーしました。"
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "コピー失敗:",
+            error
+        );
+
+
+        const textarea =
+            document.createElement(
+                "textarea"
+            );
+
+
+        textarea.value =
+            template;
+
+
+        document.body.appendChild(
+            textarea
+        );
+
+
+        textarea.select();
+
+
+        try {
+
+            document.execCommand(
+                "copy"
+            );
+
+            alert(
+                "テンプレートをコピーしました。"
+            );
+
+        } catch {
+
+            alert(
+                "コピーに失敗しました。"
+            );
+
+        }
+
+
+        textarea.remove();
+
+    }
+
 }
 
 
@@ -1843,7 +4708,9 @@ if (favoritesOnly) {
 // HTMLエスケープ
 // =========================
 
-function escapeHTML(value) {
+function escapeHTML(
+    value
+) {
 
     return String(
         value ?? ""
@@ -1868,1063 +4735,5 @@ function escapeHTML(value) {
             /'/g,
             "&#039;"
         );
+
 }
-
-
-// =========================
-// 詳細：通常
-// =========================
-
-function createNormalDetailHTML(
-    card
-) {
-
-    return `
-        <div class="detail-content">
-
-            <p>
-                <strong>読み方：</strong>
-                ${escapeHTML(
-                    card.reading || "〇〇"
-                )}
-            </p>
-
-            <p>
-                <strong>文明：</strong>
-                ${escapeHTML(
-                    card.civilization || "〇〇"
-                )}
-            </p>
-
-            <p>
-                <strong>種族：</strong>
-                ${escapeHTML(
-                    card.race || "〇〇"
-                )}
-            </p>
-
-            <p>
-                <strong>コスト：</strong>
-                ${escapeHTML(
-                    card.cost || "〇〇"
-                )}
-            </p>
-
-            <p>
-                <strong>パワー：</strong>
-                ${escapeHTML(
-                    card.power || "〇〇"
-                )}
-            </p>
-
-            <p>
-                <strong>カードタイプ：</strong>
-                ${escapeHTML(
-                    card.cardType || "〇〇"
-                )}
-            </p>
-
-            <div class="detail-ability">
-                <strong>能力：</strong>
-                <pre>${escapeHTML(
-                    String(
-                        card.ability || "〇〇"
-                    ).trim()
-                )}</pre>
-            </div>
-
-        </div>
-    `;
-}
-
-
-// =========================
-// 詳細：特殊
-// =========================
-
-function createSpecialDetailHTML(
-    card
-) {
-
-    let html =
-        `<div class="special-detail">`;
-
-    const faces =
-        Array.isArray(card.faces)
-            ? card.faces
-            : [];
-
-    faces.forEach(
-        (face, index) => {
-
-            html += `
-                <div class="special-detail-face">
-
-                    <h3>
-                        第${index + 1}面
-                    </h3>
-
-                    <div class="detail-content">
-
-                        <p>
-                            <strong>名前：</strong>
-                            ${escapeHTML(
-                                face.name || "〇〇"
-                            )}
-                        </p>
-
-                        <p>
-                            <strong>読み方：</strong>
-                            ${escapeHTML(
-                                face.reading || "〇〇"
-                            )}
-                        </p>
-
-                        <p>
-                            <strong>文明：</strong>
-                            ${escapeHTML(
-                                face.civilization || "〇〇"
-                            )}
-                        </p>
-
-                        <p>
-                            <strong>種族：</strong>
-                            ${escapeHTML(
-                                face.race || "〇〇"
-                            )}
-                        </p>
-
-                        <p>
-                            <strong>コスト：</strong>
-                            ${escapeHTML(
-                                face.cost || "〇〇"
-                            )}
-                        </p>
-
-                        <p>
-                            <strong>パワー：</strong>
-                            ${escapeHTML(
-                                face.power || "〇〇"
-                            )}
-                        </p>
-
-                        <p>
-                            <strong>カードタイプ：</strong>
-                            ${escapeHTML(
-                                face.cardType || "〇〇"
-                            )}
-                        </p>
-
-                        <div class="detail-ability">
-                            <strong>能力：</strong>
-                            <pre>${escapeHTML(
-                                String(
-                                    face.ability || "〇〇"
-                                ).trim()
-                            )}</pre>
-                        </div>
-
-                    </div>
-
-                </div>
-            `;
-        }
-    );
-
-    html +=
-        `</div>`;
-
-    return html;
-}
-
-
-// =========================
-// 詳細
-// =========================
-
-function showCardDetail(id) {
-
-    const card =
-        cards.find(
-            item =>
-                item.id === id
-        );
-
-    if (!card) {
-        return;
-    }
-
-    createSection.classList.add(
-        "hidden"
-    );
-
-    listSection.classList.add(
-        "hidden"
-    );
-
-    detailSection.classList.remove(
-        "hidden"
-    );
-
-
-    let html = `
-        <div class="detail-card">
-
-            <div class="detail-header">
-
-                <h2>
-                    ${escapeHTML(
-                        card.name ||
-                        (
-                            card.isSpecial &&
-                            card.faces &&
-                            card.faces[0]
-                                ? card.faces[0].name
-                                : "名前なし"
-                        ) ||
-                        "名前なし"
-                    )}
-                </h2>
-
-                <button
-                    type="button"
-                    class="favorite-button detail-favorite"
-                    onclick="toggleFavorite('${card.id}')"
-                >
-                    ${
-                        card.favorite
-                            ? "★"
-                            : "☆"
-                    }
-                </button>
-
-            </div>
-    `;
-
-
-    if (card.isSpecial) {
-
-        html +=
-            createSpecialDetailHTML(
-                card
-            );
-
-    } else {
-
-        html +=
-            createNormalDetailHTML(
-                card
-            );
-
-
-        if (
-            card.isTwinpact &&
-            card.bottomCard
-        ) {
-
-            const bottom =
-                card.bottomCard;
-
-            html += `
-                <div class="twinpact-detail">
-
-                    <div class="twinpact-label">
-                        ツインパクト下面
-                    </div>
-
-                    <div class="detail-content">
-
-                        <p>
-                            <strong>名前：</strong>
-                            ${escapeHTML(
-                                bottom.name || "〇〇"
-                            )}
-                        </p>
-
-                        <p>
-                            <strong>読み方：</strong>
-                            ${escapeHTML(
-                                bottom.reading || "〇〇"
-                            )}
-                        </p>
-
-                        <p>
-                            <strong>文明：</strong>
-                            ${escapeHTML(
-                                bottom.civilization || "〇〇"
-                            )}
-                        </p>
-
-                        <p>
-                            <strong>種族：</strong>
-                            ${escapeHTML(
-                                bottom.race || "〇〇"
-                            )}
-                        </p>
-
-                        <p>
-                            <strong>コスト：</strong>
-                            ${escapeHTML(
-                                bottom.cost || "〇〇"
-                            )}
-                        </p>
-
-                        <p>
-                            <strong>カードタイプ：</strong>
-                            ${escapeHTML(
-                                bottom.cardType || "呪文"
-                            )}
-                        </p>
-
-                        <div class="detail-ability">
-                            <strong>能力：</strong>
-                            <pre>${escapeHTML(
-                                String(
-                                    bottom.ability || "〇〇"
-                                ).trim()
-                            )}</pre>
-                        </div>
-
-                    </div>
-
-                </div>
-            `;
-        }
-    }
-
-
-    html += `
-            <div class="detail-actions">
-
-                <button
-                    type="button"
-                    onclick="editCard('${card.id}')"
-                >
-                    編集
-                </button>
-
-                <button
-                    type="button"
-                    onclick="copyTemplate('${card.id}')"
-                >
-                    テンプレコピー
-                </button>
-
-                <button
-                    type="button"
-                    class="delete-button"
-                    onclick="deleteCard('${card.id}')"
-                >
-                    削除
-                </button>
-
-            </div>
-
-        </div>
-    `;
-
-    cardDetail.innerHTML =
-        html;
-}
-
-
-// =========================
-// お気に入り
-// =========================
-
-function toggleFavorite(id) {
-
-    const card =
-        cards.find(
-            item =>
-                item.id === id
-        );
-
-    if (!card) {
-        return;
-    }
-
-    card.favorite =
-        !card.favorite;
-
-    saveCards();
-
-    showCardDetail(id);
-    renderCardList();
-}
-
-
-// =========================
-// ID
-// =========================
-
-function createId() {
-
-    return (
-        Date.now().toString(36) +
-        Math.random()
-            .toString(36)
-            .slice(2, 8)
-    );
-}
-
-
-// =========================
-// 編集
-// =========================
-
-function editCard(id) {
-
-    const card =
-        cards.find(
-            item =>
-                item.id === id
-        );
-
-    if (!card) {
-        return;
-    }
-
-    editingCardId =
-        id;
-
-
-    // =====================
-    // 特殊カード
-    // =====================
-
-    if (card.isSpecial) {
-
-        isSpecial = true;
-        isTwinpact = false;
-
-        specialMode =
-            card.specialMode ||
-            (
-                Array.isArray(card.faces) &&
-                card.faces.length === 3
-                    ? "3d"
-                    : "double"
-            );
-
-        renderSpecialFaces();
-
-        setSpecialFaceData(
-            Array.isArray(card.faces)
-                ? card.faces
-                : []
-        );
-
-        updateSpecialModeUI();
-        updateTwinpactUI();
-
-        saveButton.textContent =
-            "更新";
-
-        showCreateSection();
-
-        return;
-    }
-
-
-    // =====================
-    // 通常カード
-    // =====================
-
-    isSpecial = false;
-    specialMode = null;
-
-    cardName.value =
-        card.name || "";
-
-    reading.value =
-        card.reading || "";
-
-    cardType.value =
-        card.cardType || "";
-
-    cost.value =
-        card.cost || "";
-
-    power.value =
-        card.power || "";
-
-    race.value =
-        card.race || "";
-
-    ability.value =
-        card.ability || "";
-
-    setSelectedCivilizations(
-        civilizationButtons,
-        getCivilizationArray(
-            card.civilization
-        )
-    );
-
-
-    // =====================
-    // ツインパクト
-    // =====================
-
-    isTwinpact =
-        !!card.isTwinpact;
-
-
-    if (
-        isTwinpact &&
-        card.bottomCard
-    ) {
-
-        const bottom =
-            card.bottomCard;
-
-        bottomCardType.value =
-            bottom.cardType ||
-            "呪文";
-
-        bottomCardName.value =
-            bottom.name ||
-            "";
-
-        bottomReading.value =
-            bottom.reading ||
-            "";
-
-        bottomCost.value =
-            bottom.cost ||
-            "";
-
-        bottomRace.value =
-            bottom.race ||
-            "";
-
-        bottomAbility.value =
-            bottom.ability ||
-            "";
-
-        setSelectedCivilizations(
-            bottomCivilizationButtons,
-            getCivilizationArray(
-                bottom.civilization
-            )
-        );
-
-    } else {
-
-        bottomCardType.value =
-            "呪文";
-
-        bottomCardName.value =
-            "";
-
-        bottomReading.value =
-            "";
-
-        bottomCost.value =
-            "";
-
-        bottomRace.value =
-            "";
-
-        bottomAbility.value =
-            "";
-
-        setSelectedCivilizations(
-            bottomCivilizationButtons,
-            []
-        );
-    }
-
-    updateSpecialModeUI();
-    updateTwinpactUI();
-
-    saveButton.textContent =
-        "更新";
-
-    showCreateSection();
-}
-
-
-// =========================
-// 保存
-// =========================
-
-saveButton.addEventListener(
-    "click",
-    () => {
-
-        // =====================
-        // 特殊カード
-        // =====================
-
-        if (isSpecial) {
-
-            const faces =
-                getSpecialFaceData();
-
-            if (
-                faces.length === 0
-            ) {
-                alert(
-                    "面の情報を入力してください。"
-                );
-                return;
-            }
-
-            const first =
-                faces[0];
-
-            if (
-                !first.name.trim()
-            ) {
-                alert(
-                    "第1面の名前を入力してください。"
-                );
-                return;
-            }
-
-            const cardData = {
-                id:
-                    editingCardId ||
-                    createId(),
-
-                name:
-                    first.name,
-
-                reading:
-                    first.reading,
-
-                civilization:
-                    first.civilization,
-
-                race:
-                    first.race,
-
-                cost:
-                    first.cost,
-
-                power:
-                    first.power,
-
-                cardType:
-                    "ドラグハート・サイキック",
-
-                ability:
-                    first.ability,
-
-                isTwinpact:
-                    false,
-
-                isSpecial:
-                    true,
-
-                specialMode:
-                    specialMode || "double",
-
-                faces,
-
-                favorite:
-                    editingCardId
-                        ? (
-                            cards.find(
-                                item =>
-                                    item.id ===
-                                    editingCardId
-                            )?.favorite ||
-                            false
-                        )
-                        : false
-            };
-
-            if (editingCardId) {
-
-                cards =
-                    cards.map(
-                        card =>
-                            card.id ===
-                            editingCardId
-                                ? cardData
-                                : card
-                    );
-
-            } else {
-
-                cards.push(
-                    cardData
-                );
-            }
-
-            saveCards();
-
-            alert(
-                editingCardId
-                    ? "カードを更新しました。"
-                    : "カードを保存しました。"
-            );
-
-            resetForm();
-            showListSection();
-
-            return;
-        }
-
-
-        // =====================
-        // 通常カード
-        // =====================
-
-        if (
-            !cardName.value.trim()
-        ) {
-
-            alert(
-                "名前を入力してください。"
-            );
-
-            return;
-        }
-
-
-        const topCivilization =
-            getSelectedCivilizations(
-                civilizationButtons
-            ).join("・");
-
-
-        const bottomCivilization =
-            getSelectedCivilizations(
-                bottomCivilizationButtons
-            ).join("・");
-
-
-        const cardData = {
-
-            id:
-                editingCardId ||
-                createId(),
-
-            name:
-                cardName.value,
-
-            reading:
-                reading.value,
-
-            civilization:
-                topCivilization,
-
-            race:
-                race.value,
-
-            cost:
-                cost.value,
-
-            power:
-                power.value,
-
-            cardType:
-                cardType.value,
-
-            ability:
-                ability.value,
-
-            isTwinpact:
-                isTwinpact,
-
-            isSpecial:
-                false,
-
-            favorite:
-                editingCardId
-                    ? (
-                        cards.find(
-                            item =>
-                                item.id ===
-                                editingCardId
-                        )?.favorite ||
-                        false
-                    )
-                    : false
-        };
-
-
-        if (isTwinpact) {
-
-            cardData.bottomCard = {
-
-                name:
-                    bottomCardName.value,
-
-                reading:
-                    bottomReading.value,
-
-                civilization:
-                    bottomCivilization,
-
-                race:
-                    bottomRace.value,
-
-                cost:
-                    bottomCost.value,
-
-                cardType:
-                    bottomCardType.value ||
-                    "呪文",
-
-                ability:
-                    bottomAbility.value
-            };
-        }
-
-
-        if (editingCardId) {
-
-            cards =
-                cards.map(
-                    card =>
-                        card.id ===
-                        editingCardId
-                            ? cardData
-                            : card
-                );
-
-        } else {
-
-            cards.push(
-                cardData
-            );
-        }
-
-
-        saveCards();
-
-        alert(
-            editingCardId
-                ? "カードを更新しました。"
-                : "カードを保存しました。"
-        );
-
-        resetForm();
-        showListSection();
-    }
-);
-
-
-// =========================
-// 削除
-// =========================
-
-function deleteCard(id) {
-
-    const card =
-        cards.find(
-            item =>
-                item.id === id
-        );
-
-    if (!card) {
-        return;
-    }
-
-    const confirmed =
-        confirm(
-            `「${
-                card.name ||
-                (
-                    card.isSpecial &&
-                    card.faces &&
-                    card.faces[0]
-                        ? card.faces[0].name
-                        : "名前なし"
-                ) ||
-                "名前なし"
-            }」を削除しますか？`
-        );
-
-    if (!confirmed) {
-        return;
-    }
-
-    cards =
-        cards.filter(
-            item =>
-                item.id !== id
-        );
-
-    saveCards();
-
-    showListSection();
-}
-
-
-// =========================
-// テンプレ用文明
-// =========================
-
-function getTemplateCivilization(
-    civilization
-) {
-
-    return getCivilizationArray(
-        civilization
-    ).join("/");
-}
-
-
-// =========================
-// テンプレコピー
-// =========================
-
-function copyTemplate(id) {
-
-    const card =
-        cards.find(
-            item =>
-                item.id === id
-        );
-
-    if (!card) {
-        return;
-    }
-
-    let template = "";
-
-
-    // =====================
-    // 特殊カード
-    // =====================
-
-    if (card.isSpecial) {
-
-        const faces =
-            Array.isArray(card.faces)
-                ? card.faces
-                : [];
-
-        faces.forEach(
-            (face, index) => {
-
-                if (index > 0) {
-
-                    template +=
-                        "\n\n--------------------\n\n";
-                }
-
-                template +=
-`【第${index + 1}面】
-名前：${face.name || "〇〇"}
-読み方：${face.reading || "〇〇"}
-文明：${getTemplateCivilization(face.civilization) || "〇〇"}
-種族：${face.race || "〇〇"}
-コスト：${face.cost || "〇〇"}
-パワー：${face.power || "〇〇"}
-カードタイプ：${face.cardType || "〇〇"}
-能力：
-${String(
-    face.ability ||
-    "〇〇"
-).trim()}`;
-            }
-        );
-
-
-    // =====================
-    // 通常・ツインパクト
-    // =====================
-
-    } else {
-
-        const civilization =
-            getTemplateCivilization(
-                card.civilization
-            );
-
-        template =
-`名前：${card.name || "〇〇"}
-読み方：${card.reading || "〇〇"}
-文明：${civilization || "〇〇"}
-種族：${card.race || "〇〇"}
-コスト：${card.cost || "〇〇"}
-パワー：${card.power || "〇〇"}
-カードタイプ：${card.isTwinpact ? "ツインパクト" : (card.cardType || "〇〇")}
-能力：
-${String(
-    card.ability ||
-    "〇〇"
-).trim()}`;
-
-
-        if (
-            card.isTwinpact &&
-            card.bottomCard
-        ) {
-
-            const bottom =
-                card.bottomCard;
-
-            const bottomCivilization =
-                getTemplateCivilization(
-                    bottom.civilization
-                );
-
-            template +=
-`
---------------------
-
-【ツインパクト下面】
-
-名前：${bottom.name || "〇〇"}
-読み方：${bottom.reading || "〇〇"}
-文明：${bottomCivilization || "〇〇"}
-種族：${bottom.race || "〇〇"}
-コスト：${bottom.cost || "〇〇"}
-カードタイプ：${bottom.cardType || "呪文"}
-能力：
-${String(
-    bottom.ability ||
-    "〇〇"
-).trim()}`;
-        }
-    }
-
-
-    navigator.clipboard
-        .writeText(template)
-        .then(() => {
-
-            alert(
-                "テンプレートをコピーしました。"
-            );
-
-        })
-        .catch(() => {
-
-            alert(
-                "コピーに失敗しました。"
-            );
-        });
-}
-
-
-// =========================
-// 詳細 → 一覧
-// =========================
-
-backToListButton.addEventListener(
-    "click",
-    showListSection
-);
-
-
-// =========================
-// 初期化
-// =========================
-
-updateSpecialModeUI();
-updateTwinpactUI();
-
-updateSearchCivilizationModeUI();
-
-renderCardList();
-
-showCreateSection();
