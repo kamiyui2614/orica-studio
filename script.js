@@ -2061,8 +2061,16 @@ function insertSlash(
     id
 ) {
 
-    const input =
-        $(id);
+    insertSlashIntoInput(
+        $(id)
+    );
+
+}
+
+
+function insertSlashIntoInput(
+    input
+) {
 
     if (!input) {
         return;
@@ -2070,10 +2078,12 @@ function insertSlash(
 
 
     const start =
-        input.selectionStart;
+        input.selectionStart ??
+        input.value.length;
 
     const end =
-        input.selectionEnd;
+        input.selectionEnd ??
+        input.value.length;
 
 
     input.value =
