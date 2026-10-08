@@ -4268,9 +4268,7 @@ function renderNormalDetail(
             card.power,
 
         "カードタイプ":
-            card.isTwinpact
-                ? "ツインパクト"
-                : card.cardType,
+            card.cardType,
 
         "能力":
             card.ability
