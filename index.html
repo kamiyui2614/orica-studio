@@ -2,14 +2,23 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
     >
 
     <title>ORICA STUDIO</title>
-    <link rel="icon" href="favicon.png">
-    <link rel="stylesheet" href="style.css">
+
+    <link
+        rel="icon"
+        href="favicon.png"
+    >
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 </head>
 
 <body>
@@ -54,7 +63,6 @@
 
 
 <main class="container">
-
 
     <!-- =========================
          カード作成
@@ -104,9 +112,17 @@
                     <button
                         type="button"
                         class="small-button mode-button"
-                        id="multiFaceButton"
+                        id="dragHeartButton"
                     >
-                        ドラグハート・サイキック
+                        ドラグハート
+                    </button>
+
+                    <button
+                        type="button"
+                        class="small-button mode-button"
+                        id="psychicButton"
+                    >
+                        サイキック
                     </button>
 
                 </div>
@@ -147,7 +163,6 @@
             ====================== -->
 
             <div id="normalCardFields">
-
 
                 <!-- 名前 -->
 
@@ -251,7 +266,6 @@
 
                 <div class="form-row">
 
-
                     <div class="form-group">
 
                         <label for="cost">
@@ -324,7 +338,6 @@
                     >
 
                 </div>
-
 
             </div>
 
@@ -542,7 +555,7 @@
 
 
         <!-- =========================
-             ドラグハート・サイキック
+             ドラグハート / サイキック
         ========================== -->
 
         <div
@@ -619,7 +632,6 @@
             id="searchPanel"
             class="card-panel hidden"
         >
-
 
             <!-- キーワード -->
 
@@ -731,7 +743,6 @@
                     文明
                 </label>
 
-
                 <div class="search-civilization-mode">
 
                     <button
@@ -832,6 +843,17 @@
 
             </label>
 
+
+            <!-- 条件クリア -->
+
+            <button
+                type="button"
+                class="small-button"
+                id="clearSearchButton"
+            >
+                条件クリア
+            </button>
+
         </div>
 
 
@@ -868,7 +890,6 @@
     </section>
 
 </main>
-
 
 <script src="script.js"></script>
 
