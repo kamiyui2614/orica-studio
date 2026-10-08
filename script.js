@@ -1793,7 +1793,7 @@ function getSpecialFaceData() {
 
                     civilization:
                         civilizations.join(
-                            "/"
+                            "・"
                         ),
 
                     race:
@@ -3661,7 +3661,7 @@ function saveCard() {
 
             civilization:
                 civilizations.join(
-                    "/"
+                    "・"
                 ),
 
             cost:
@@ -3743,7 +3743,7 @@ function saveCard() {
 
             civilization:
                 civilizations.join(
-                    "/"
+                    "・"
                 ),
 
             cost:
@@ -3803,7 +3803,7 @@ function saveCard() {
 
             bottomCivilization:
                 bottomCivilizations.join(
-                    "/"
+                    "・"
                 ),
 
             bottomCost:
@@ -4256,7 +4256,7 @@ function renderNormalDetail(
         "文明":
             getCardCivilizations(
                 card
-            ).join("/"),
+            ).join("・"),
 
         "種族":
             card.race,
@@ -4331,7 +4331,7 @@ function renderNormalDetail(
                         card.bottomCivilization ||
                         ""
                     )
-                ).join("/"),
+                ).join("・"),
 
             "種族":
                 card.bottomRace,
@@ -4442,7 +4442,7 @@ function renderSpecialDetail(
                             face.civilization ||
                             ""
                         )
-                    ).join("/"),
+                    ).join("・"),
 
                 "種族":
                     face.race,
@@ -4513,7 +4513,8 @@ function appendDetailRow(
     );
 
 
-    // 能力欄は入力時の改行を維持
+    // 能力欄は「能力：」の直後で必ず改行し、
+    // 入力時の改行も維持する
     if (
         label === "能力"
     ) {
@@ -4533,6 +4534,14 @@ function appendDetailRow(
             );
 
         } else {
+
+            // 「能力：」と最初の能力行を必ず別行にする
+            p.appendChild(
+                document.createElement(
+                    "br"
+                )
+            );
+
 
             const lines =
                 ability.split(/\r?\n/);
@@ -4568,8 +4577,8 @@ function appendDetailRow(
         p.appendChild(
             document.createTextNode(
                 String(
-                    value ?? "-"
-                ) || "-"
+                    value ?? ""
+                ).trim() || "-"
             )
         );
 
@@ -4581,7 +4590,6 @@ function appendDetailRow(
     );
 
 }
-
 
 
 // =========================
@@ -4631,7 +4639,7 @@ function formatCivilizationsForCopy(
 
 
     return (
-        civilizations.join("/") || "-"
+        civilizations.join("・") || "-"
     );
 
 }
